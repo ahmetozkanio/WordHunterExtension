@@ -46,20 +46,58 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      justify-content: space-between;
     }
     .export-group {
       margin-bottom: 10px;
     }
+    .github-link {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      text-decoration: none;
+      color: #333;
+      font-size: 1.5em;
+    }
+    .github-link:hover {
+      color: #4CAF50;
+    }
+    .github-icon {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+    .github-link:hover .github-icon {
+      filter: brightness(0.8);
+    }
+    h2.header {
+      display: flex;
+      align-items: center;
+      margin: 0;
+    }
+    .title {
+      flex-grow: 1;
+      color: #4CAF50;
+      font-size: 1.1em;
+    }
   </style>
 </head>
 <body>
-  <h2>📚 WordHunter</h2>
+  <h2 class="header">
+    <span class="title">📚 WordHunter</span>
+  </h2>
+  <a href="https://github.com/ahmetozkanio/WordHunterExtension" target="_blank" class="github-link" title="View on GitHub">
+    <img src="images/github-mark.png" alt="GitHub" class="github-icon">
+  </a>
+  
   <div class="word-list" id="wordList"></div>
   <div class="export-group">
     <button class="export-btn" id="exportCsvBtn">CSV</button>
     <button class="export-btn" id="exportJsonBtn">JSON</button>
     <button class="export-btn" id="exportTxtBtn">TXT</button>
-  </div>
+
+
+</html></body>  </div>
   <script src="popup.js"></script>
 </body>
-</html> 
+</html>
