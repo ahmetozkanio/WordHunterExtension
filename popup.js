@@ -12,14 +12,41 @@ document.addEventListener('DOMContentLoaded', () => {
       
       words.sort((a, b) => new Date(b.date) - new Date(a.date))
         .forEach(word => {
-          wordList.innerHTML += `
-            <div class="word-item">
-              <span class="word-text">${word.text}</span>
-              <span class="word-date">${new Date(word.date).toLocaleString()}</span>
+          const wordItem = document.createElement('div');
+          wordItem.className = 'word-item';
+          wordItem.innerHTML = `
+             
+            <span class="word-text">  ${word.text}</span>
+
+              <span class="sound-icon" title="Play Sound" data-word="${word.text}"> 📢 </span>
+              
+            <div class="translation-icons">
+              <a href="https://translate.google.com/?sl=auto&tl=tr&text=${encodeURIComponent(word.text)}&op=translate" target="_blank" title="Google Translate">
+                <img src="images/google-translate-icon.png" alt="Google Translate" class="icon">
+              </a>
             </div>
+             <span class="word-date">${new Date(word.date).toLocaleString()}</span>
           `;
+
+          wordList.appendChild(wordItem);
         });
+
+      // Add event listeners for sound icons
+      const soundIcons = document.querySelectorAll('.sound-icon');
+      soundIcons.forEach(icon => {
+        icon.addEventListener('click', () => {
+          const word = icon.getAttribute('data-word');
+          playSound(word);
+        });
+      });
     });
+  }
+
+  // Function to play sound using SpeechSynthesis API
+  function playSound(word) {
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = 'en-US'; // Set language to English
+    window.speechSynthesis.speak(utterance);
   }
 
   // Export to CSV
@@ -69,4 +96,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initial load
   loadWords();
-}); 
+});
