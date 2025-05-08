@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "WordHunter",
+  "version": "1.0",
+  "description": "Save and manage selected words from web pages",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "icons": {
+    "128": "images/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "128": "images/icon128.png"
+    },
+    "default_title": "📚 WordHunter"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+} 
