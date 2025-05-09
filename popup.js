@@ -288,6 +288,9 @@ document.addEventListener('DOMContentLoaded', () => {
           
           const levelHeader = document.createElement('div');
           levelHeader.className = 'date-header';
+          
+          levelHeader.classList.add(`level-${level}`);
+
           levelHeader.innerHTML = `
             <div class="date-info">
               <span class="level-badge level-${level}">Level ${level}</span>
