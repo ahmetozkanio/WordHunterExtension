@@ -19,6 +19,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 5px; /* Adding spacing between items */
     }
     .word-text {
       flex-grow: 1;
@@ -82,16 +83,36 @@
     }
     /* Adjusting the size of the sound icon and adding spacing */
     .sound-icon {
-      font-size: 24px;
+      font-size: 16px;
       cursor: pointer;
       margin-left: 10px; /* Add spacing between icons */
     }
-    /* Adjusting spacing between the sound icon and the word text */
-    .sound-icon {
-      font-size: 24px;
+    
+    /* Delete icon styling */
+    .delete-icon {
+      color: #ff0000;
       cursor: pointer;
-      margin-right: 10px; /* Add spacing between the sound icon and the word text */
+      font-size: 10px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
     }
+    
+    .delete-icon:hover {
+      opacity: 1;
+    }
+
+    .word-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px; /* Adding spacing between action items */
+    }
+
+    .word-actions img.icon {
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+    }
+
   </style>
 </head>
 <body>

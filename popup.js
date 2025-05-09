@@ -15,17 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
           const wordItem = document.createElement('div');
           wordItem.className = 'word-item';
           wordItem.innerHTML = `
-             
-            <span class="word-text">  ${word.text}</span>
-
-              <span class="sound-icon" title="Play Sound" data-word="${word.text}"> 📢 </span>
-              
-            <div class="translation-icons">
+            <span class="word-text">${word.text}</span>
+            <div class="word-actions">
+              <span class="sound-icon" title="Play Sound" data-word="${word.text}">📢</span>
               <a href="https://translate.google.com/?sl=auto&tl=tr&text=${encodeURIComponent(word.text)}&op=translate" target="_blank" title="Google Translate">
                 <img src="images/google-translate-icon.png" alt="Google Translate" class="icon">
               </a>
+              <span class="word-date">${new Date(word.date).toLocaleString()}</span>
+              <span class="delete-icon" title="Delete" data-word="${word.text}">❌</span>
             </div>
-             <span class="word-date">${new Date(word.date).toLocaleString()}</span>
           `;
 
           wordList.appendChild(wordItem);
@@ -39,6 +37,15 @@ document.addEventListener('DOMContentLoaded', () => {
           playSound(word);
         });
       });
+
+      // Add event listeners for delete icons
+      const deleteIcons = document.querySelectorAll('.delete-icon');
+      deleteIcons.forEach(icon => {
+        icon.addEventListener('click', () => {
+          const word = icon.getAttribute('data-word');
+          deleteWord(word);
+        });
+      });
     });
   }
 
@@ -47,6 +54,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const utterance = new SpeechSynthesisUtterance(word);
     utterance.lang = 'en-US'; // Set language to English
     window.speechSynthesis.speak(utterance);
+  }
+
+  // Function to delete a word
+  function deleteWord(wordToDelete) {
+    chrome.storage.local.get(['words'], result => {
+      const words = result.words || [];
+      const updatedWords = words.filter(word => word.text !== wordToDelete);
+      chrome.storage.local.set({ words: updatedWords }, () => {
+        loadWords(); // Reload the word list after deletion
+      });
+    });
   }
 
   // Export to CSV
