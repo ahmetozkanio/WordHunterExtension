@@ -65,11 +65,12 @@ floatingButton.addEventListener('click', () => {
         return;
       }
 
-      // Add new word with count
+      // Add new word with count and level
       const newWord = {
         word: selectedText,
         date: new Date().toISOString(),
-        count: 1
+        count: 1,
+        level: 1  // Default level is 1
       };
       words.push(newWord);
 

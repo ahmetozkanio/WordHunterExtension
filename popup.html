@@ -23,6 +23,7 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 5px; /* Adding spacing between items */
+      position: relative; /* Ensure relative positioning */
     }
     .word-text {
       display: flex;
@@ -60,33 +61,52 @@
       margin-bottom: 10px;
     }
     .github-link {
-      position: absolute;
-      top: 10px;
-      right: 10px;
+      position: static;
       text-decoration: none;
       color: #333;
-      font-size: 1.5em;
+      display: flex;
+      align-items: center;
     }
     .github-link:hover {
       color: #4CAF50;
     }
     .github-icon {
-      width: 24px;
-      height: 24px;
+      width: 22px; /* Aynı boyut diğer ikonlarla */
+      height: 22px;
       display: block;
+      transition: opacity 0.2s ease;
+      padding: 3px;
+      box-sizing: border-box;
+      opacity: 0.7; /* Başlangıç opaklığı */
+    }
+    .github-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 4px;
+    }
+    .github-link:hover {
+      background-color: rgba(33, 150, 243, 0.1);
     }
     .github-link:hover .github-icon {
-      filter: brightness(0.8);
+      opacity: 1;
     }
     h2.header {
       display: flex;
       align-items: center;
       margin: 0;
+      position: relative;
     }
     .title {
       flex-grow: 1;
       color: #4CAF50;
       font-size: 1.1em;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     /* Adjusting the size of the sound icon and adding spacing */
     .sound-icon {
@@ -113,6 +133,12 @@
       display: flex;
       align-items: center;
       gap: 5px; /* Adding spacing between action items */
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .word-item:hover .word-actions {
+      opacity: 1;
     }
 
     .word-actions img.icon {
@@ -133,12 +159,7 @@
     }
 
     .button-group {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start; /* Changed to align from start */
-      margin-top: 10px;
-      gap: 12px;
-      padding: 0 5px;
+      display: none;
     }
 
     .import-export-group {
@@ -304,33 +325,418 @@
     .date-section.collapsed .toggle-icon {
       transform: rotate(-90deg);
     }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: #666;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .tab.active {
+      color: #2196F3;
+      border-bottom: 2px solid #2196F3;
+    }
+
+    .tab:hover {
+      color: #2196F3;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .level-badge {
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-left: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .level-dropdown {
+      position: absolute;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: none;
+      z-index: 1000;
+      right: 130px; /* Pozisyonu sabitle */
+      top: 50%;
+      transform: translateY(-50%);
+      white-space: nowrap;
+      min-width: max-content;
+    }
+
+    .level-dropdown.show {
+      display: flex;
+      flex-direction: row;
+      gap: 5px;
+      padding: 5px;
+    }
+
+    .level-option {
+      padding: 4px 8px;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+
+    /* Level colors - organized by learning progress */
+    .level-1 { 
+      background-color: #ffebee; 
+      color: #d32f2f; /* Red - Newly learned */
+    }
+    .level-2 { 
+      background-color: #fff3e0; 
+      color: #f57c00; /* Orange - Learning in progress */
+    }
+    .level-3 { 
+      background-color: #e3f2fd; 
+      color: #1976d2; /* Blue - Well learned */
+    }
+    .level-4 { 
+      background-color: #e0f2f1; 
+      color: #00897b; /* Turquoise - Very well learned */
+    }
+    .level-5 { 
+      background-color: #e8f5e9; 
+      color: #388e3c; /* Green - Mastered */
+    }
+
+    /* Hover effects for level badges */
+    .level-1:hover { background-color: #ffcdd2; }
+    .level-2:hover { background-color: #ffe0b2; }
+    .level-3:hover { background-color: #bbdefb; }
+    .level-4:hover { background-color: #b2dfdb; }
+    .level-5:hover { background-color: #c8e6c9; }
+
+    /* Tooltip styling */
+    [data-tooltip] {
+      position: relative;
+    }
+
+    [data-tooltip]:before {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 4px 8px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 12px;
+      border-radius: 4px;
+      white-space: nowrap;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+      z-index: 1001;
+    }
+
+    [data-tooltip]:hover:before {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    /* Info panel styling */
+    .info-icon {
+      cursor: pointer;
+      font-size: 20px;
+      color: #2196F3;
+      transition: color 0.2s ease;
+    }
+
+    .info-icon:hover {
+      color: #1976D2;
+    }
+
+    .info-panel {
+      display: none;
+      position: absolute;
+      right: 10px;
+      top: 60px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      width: 280px;
+      z-index: 1000;
+    }
+
+    .info-panel.show {
+      display: block;
+    }
+
+    .info-panel h3 {
+      margin: 0 0 10px 0;
+      color: #2196F3;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .info-panel .close-btn {
+      cursor: pointer;
+      font-size: 18px;
+      color: #666;
+    }
+
+    .level-info {
+      margin: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .level-info .level-indicator {
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .level-info .level-description {
+      font-size: 12px;
+      color: #666;
+      flex: 1;
+    }
+
+    /* Remove old tooltip styles */
+    [data-tooltip]:before {
+      display: none;
+    }
+
+    .settings-panel {
+      display: none;
+      position: absolute;
+      right: 10px;
+      top: 60px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      width: 200px;
+      z-index: 1000;
+    }
+
+    .settings-panel.show {
+      display: block;
+    }
+
+    .settings-panel h3 {
+      margin: 0 0 15px 0;
+      color: #2196F3;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .settings-panel .close-btn {
+      cursor: pointer;
+      font-size: 18px;
+      color: #666;
+    }
+
+    .settings-option {
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .settings-option:last-child {
+      border-bottom: none;
+    }
+
+    .settings-btn {
+      width: 100%;
+      padding: 8px;
+      background: none;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #333;
+      font-size: 13px;
+      transition: all 0.2s ease;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .settings-btn:hover {
+      background-color: #f5f5f5;
+      border-color: #2196F3;
+      color: #2196F3;
+    }
+
+    .action-icon {
+      cursor: pointer;
+      color: #666;
+      transition: color 0.2s ease;
+      padding: 3px;
+      box-sizing: border-box;
+      border-radius: 4px;
+      pointer-events: auto; /* Ensure clicks are detected */
+      width: 28px; /* Increase clickable area */
+      height: 28px; /* Increase clickable area */
+    }
+
+    .action-icon path {
+      pointer-events: none; /* Prevent path from interfering with clicks */
+    }
+
+    .info-icon, .settings-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative; /* Ensure positioning context */
+    }
+
+    /* Add wrapper for better click handling */
+    .icon-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .github-icon {
+      width: 22px;
+      height: 22px;
+      display: block;
+      transition: opacity 0.2s ease;
+    }
+
+    .github-link:hover .github-icon {
+      opacity: 0.7;
+    }
+
+    /* Update existing icon styles */
+    .info-icon, .settings-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Remove old emoji-based icon styles */
+    .info-icon:hover, .settings-icon:hover {
+      color: #2196F3;
+    }
   </style>
 </head>
 <body>
   <h2 class="header">
     <span class="title">📚 WordHunter</span>
-  </h2>
-  <a href="https://github.com/ahmetozkanio/WordHunterExtension" target="_blank" class="github-link" title="View on GitHub">
-    <img src="images/github-mark.png" alt="GitHub" class="github-icon">
-  </a>
-  <div class="word-count" id="wordCount"></div>
-  <div class="word-list" id="wordList"></div>
-  <div class="button-group">
-    <div class="import-export-group">
-      <input type="file" id="fileInput" class="file-input" accept=".csv,.json,.txt">
-      <button class="import-btn" id="importBtn">Import</button>
+    <div class="header-actions">
+      <div class="icon-wrapper">
+        <svg class="action-icon info-icon" viewBox="0 0 24 24" width="22" height="22">
+          <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+        </svg>
+      </div>
+      <div class="icon-wrapper">
+        <svg class="action-icon settings-icon" viewBox="0 0 24 24" width="22" height="22">
+          <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+        </svg>
+      </div>
+      <a href="https://github.com/ahmetozkanio/WordHunterExtension" target="_blank" class="github-link" title="View on GitHub">
+        <img src="images/github-mark.png" alt="GitHub" class="github-icon">
+      </a>
     </div>
-    <div class="import-export-group">
-      <div class="dropdown">
-        <button class="export-btn" id="exportBtn">Export</button>
-        <div class="dropdown-content" id="exportDropdown">
-          <button id="exportCsvBtn">CSV</button>
-          <button id="exportJsonBtn">JSON</button>
-          <button id="exportTxtBtn">TXT</button>
-        </div>
+  </h2>
+  <div class="tabs">
+    <button class="tab active" data-tab="learning">Learning Progress</button>
+    <button class="tab" data-tab="all-words">All Words</button>
+  </div>
+  <div class="word-count" id="wordCount"></div>
+  <div class="tab-content" id="all-words">
+    <div class="word-list" id="wordList"></div>
+  </div>
+  <div class="tab-content active" id="learning">
+    <div class="word-list" id="learningList"></div>
+  </div>
+  
+  <!-- Settings Panel -->
+  <div class="settings-panel">
+    <h3>
+      Settings
+      <span class="close-btn">&times;</span>
+    </h3>
+    <div class="settings-option">
+      <button class="settings-btn" id="importBtn">
+        📥 Import Words
+      </button>
+    </div>
+    <div class="settings-option">
+      <button class="settings-btn" id="exportBtn">
+        📤 Export Words
+        <span style="margin-left: auto;">▾</span>
+      </button>
+      <div class="dropdown-content" id="exportDropdown" style="position: relative; margin-top: 5px;">
+        <button id="exportCsvBtn">CSV</button>
+        <button id="exportJsonBtn">JSON</button>
+        <button id="exportTxtBtn">TXT</button>
       </div>
     </div>
   </div>
+  
+  <!-- Info Panel -->
+  <div class="info-panel">
+    <h3>
+      Learning Levels
+      <span class="close-btn">&times;</span>
+    </h3>
+    <div class="level-info">
+      <span class="level-indicator level-1">Level 1</span>
+      <span class="level-description">Newly learned - Just started learning this word</span>
+    </div>
+    <div class="level-info">
+      <span class="level-indicator level-2">Level 2</span>
+      <span class="level-description">Learning in progress - Getting familiar with the word</span>
+    </div>
+    <div class="level-info">
+      <span class="level-indicator level-3">Level 3</span>
+      <span class="level-description">Well learned - Good understanding of the word</span>
+    </div>
+    <div class="level-info">
+      <span class="level-indicator level-4">Level 4</span>
+      <span class="level-description"> Very well learned - Strong knowledge of the word</span>
+    </div>
+    <div class="level-info">
+      <span class="level-indicator level-5">Level 5</span>
+      <span class="level-description">Mastered - Complete mastery of the word</span>
+    </div>
+  </div>
   <script src="popup.js"></script>
+  <input type="file" id="fileInput" accept=".json,.csv,.txt" style="display: none;">
 </body>
 </html>

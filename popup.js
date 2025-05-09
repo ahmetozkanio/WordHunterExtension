@@ -1,13 +1,156 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // DOM element references
   const wordList = document.getElementById('wordList');
+  const wordCount = document.getElementById('wordCount');
+  const exportBtn = document.getElementById('exportBtn');
+  const exportDropdown = document.getElementById('exportDropdown');
   const exportCsvBtn = document.getElementById('exportCsvBtn');
   const exportJsonBtn = document.getElementById('exportJsonBtn');
   const exportTxtBtn = document.getElementById('exportTxtBtn');
-  const wordCount = document.getElementById('wordCount');
   const importBtn = document.getElementById('importBtn');
   const fileInput = document.getElementById('fileInput');
-  const exportBtn = document.getElementById('exportBtn');
-  const exportDropdown = document.getElementById('exportDropdown');
+  const settingsIcon = document.querySelector('.settings-icon');
+  const settingsPanel = document.querySelector('.settings-panel');
+  const settingsCloseBtn = document.querySelector('.settings-panel .close-btn');
+  const infoIcon = document.querySelector('.info-icon');
+  const infoPanel = document.querySelector('.info-panel');
+  const closeBtn = document.querySelector('.info-panel .close-btn');
+
+  // Tab switching functionality
+  const tabs = document.querySelectorAll('.tab');
+  const tabContents = document.querySelectorAll('.tab-content');
+  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tabContents.forEach(content => content.classList.remove('active'));
+      
+      tab.classList.add('active');
+      const targetContent = document.getElementById(tab.dataset.tab);
+      targetContent.classList.add('active');
+      
+      if (tab.dataset.tab === 'learning') {
+        loadLearningProgress();
+      } else {
+        loadWords();
+      }
+    });
+  });
+
+  function createLevelBadge(level) {
+    const tooltips = {
+      1: "Newly learned - Just started learning this word",
+      2: "Learning in progress - Getting familiar with the word",
+      3: "Well learned - Good understanding of the word",
+      4: "Very well learned - Strong knowledge of the word",
+      5: "Mastered - Complete mastery of the word"
+    };
+    return `<span class="level-badge level-${level}" data-level="${level}" data-tooltip="${tooltips[level]}">Level ${level}</span>`;
+  }
+
+  function createLevelDropdown(wordObj) {
+    const dropdown = document.createElement('div');
+    dropdown.className = 'level-dropdown';
+    dropdown.innerHTML = Array.from({length: 5}, (_, i) => i + 1)
+      .map(level => `<span class="level-option level-${level}" data-level="${level}">Level ${level}</span>`)
+      .join('');
+    return dropdown;
+  }
+
+  function updateWordLevel(word, newLevel) {
+    chrome.storage.local.get(['words'], result => {
+      const words = result.words || [];
+      const wordIndex = words.findIndex(w => w.word === word);
+      
+      if (wordIndex !== -1) {
+        words[wordIndex].level = newLevel;
+        chrome.storage.local.set({ words }, () => {
+          const activeTab = document.querySelector('.tab.active');
+          if (activeTab.dataset.tab === 'learning') {
+            loadLearningProgress();
+          } else {
+            loadWords();
+          }
+        });
+      }
+    });
+  }
+
+  function createWordItem(wordObj) {
+    const wordItem = document.createElement('div');
+    wordItem.className = 'word-item';
+    wordItem.innerHTML = `
+      <span class="word-text">
+        ${wordObj.count > 1 ? `<span class="word-count-badge">${wordObj.count}</span>` : ''}
+        ${wordObj.word}
+        ${createLevelBadge(wordObj.level || 1)}
+      </span>
+      <div class="word-actions">
+        <span class="sound-icon" title="Play Sound" data-word="${wordObj.word}">🎧</span>
+        <a href="https://translate.google.com/?sl=auto&tl=tr&text=${encodeURIComponent(wordObj.word)}&op=translate" target="_blank" title="Google Translate">
+          <img src="images/google-translate-icon.png" alt="Google Translate" class="icon">
+        </a>
+        <span class="delete-icon" title="Delete" data-word="${wordObj.word}">❌</span>
+      </div>
+    `;
+
+    // Create and append level dropdown
+    const dropdown = document.createElement('div');
+    dropdown.className = 'level-dropdown';
+    dropdown.innerHTML = Array.from({length: 5}, (_, i) => i + 1)
+      .map(level => `<span class="level-option level-${level}" data-level="${level}" data-word="${wordObj.word}">Level ${level}</span>`)
+      .join('');
+    wordItem.appendChild(dropdown);
+
+    // Level badge click handler
+    const levelBadge = wordItem.querySelector('.level-badge');
+    levelBadge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const allDropdowns = document.querySelectorAll('.level-dropdown');
+      allDropdowns.forEach(d => {
+        if (d !== dropdown) {
+          d.classList.remove('show');
+        }
+      });
+      
+      if (!dropdown.classList.contains('show')) {
+        const badgeRect = levelBadge.getBoundingClientRect();
+        dropdown.style.position = 'absolute';
+        dropdown.style.left = `${badgeRect.width + 10}px`; // Level badge'in sağında
+        dropdown.style.top = '50%';
+        dropdown.style.transform = 'translateY(-50%)';
+      }
+      
+      dropdown.classList.toggle('show');
+    });
+
+    // Level options click handler
+    dropdown.addEventListener('click', (e) => {
+      const option = e.target.closest('.level-option');
+      if (option) {
+        e.stopPropagation();
+        const newLevel = parseInt(option.dataset.level);
+        const word = option.dataset.word;
+        updateWordLevel(word, newLevel);
+      }
+    });
+
+    // Add other event listeners
+    const wordText = wordItem.querySelector('.word-text');
+    wordText.addEventListener('dblclick', handleWordEdit);
+
+    const soundIcon = wordItem.querySelector('.sound-icon');
+    soundIcon.addEventListener('click', () => {
+      playSound(wordObj.word);
+    });
+
+    const deleteIcon = wordItem.querySelector('.delete-icon');
+    deleteIcon.addEventListener('click', () => {
+      deleteWord(wordObj.word);
+    });
+
+    return wordItem;
+  }
 
   // Load and display saved words
   function loadWords() {
@@ -55,25 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dateWords.sort((a, b) => new Date(b.date) - new Date(a.date))
           .forEach(wordObj => {
-            const wordItem = document.createElement('div');
-            wordItem.className = 'word-item';
-            wordItem.innerHTML = `
-              <span class="word-text">
-                ${wordObj.count > 1 ? `<span class="word-count-badge">${wordObj.count}</span>` : ''}
-                ${wordObj.word}
-              </span>
-              <div class="word-actions">
-                <span class="sound-icon" title="Play Sound" data-word="${wordObj.word}">📢</span>
-                <a href="https://translate.google.com/?sl=auto&tl=tr&text=${encodeURIComponent(wordObj.word)}&op=translate" target="_blank" title="Google Translate">
-                  <img src="images/google-translate-icon.png" alt="Google Translate" class="icon">
-                </a>
-                <span class="delete-icon" title="Delete" data-word="${wordObj.word}">❌</span>
-              </div>
-            `;
-
-            const wordText = wordItem.querySelector('.word-text');
-            wordText.addEventListener('dblclick', handleWordEdit);
-            wordContainer.appendChild(wordItem);
+            wordContainer.appendChild(createWordItem(wordObj));
           });
 
         dateSection.appendChild(dateHeader);
@@ -87,24 +212,68 @@ document.addEventListener('DOMContentLoaded', () => {
           toggleIcon.textContent = dateSection.classList.contains('collapsed') ? '▶' : '▼';
         });
       });
+    });
+  }
 
-      // Add event listeners for sound icons
-      const soundIcons = document.querySelectorAll('.sound-icon');
-      soundIcons.forEach(icon => {
-        icon.addEventListener('click', () => {
-          const word = icon.getAttribute('data-word');
-          playSound(word);
-        });
-      });
+  function loadLearningProgress() {
+    chrome.storage.local.get(['words'], result => {
+      const words = result.words || [];
+      const learningList = document.getElementById('learningList');
+      learningList.innerHTML = '';
 
-      // Add event listeners for delete icons
-      const deleteIcons = document.querySelectorAll('.delete-icon');
-      deleteIcons.forEach(icon => {
-        icon.addEventListener('click', () => {
-          const word = icon.getAttribute('data-word');
-          deleteWord(word);
-        });
-      });
+      // Group words by level
+      const groupedByLevel = words.reduce((groups, word) => {
+        const level = word.level || 1;
+        if (!groups[level]) {
+          groups[level] = [];
+        }
+        groups[level].push({...word});
+        return groups;
+      }, {});
+
+      // Create sections for each level (1 to 5)
+      for (let level = 1; level <= 5; level++) {
+        const levelWords = groupedByLevel[level] || [];
+        if (levelWords.length > 0) {
+          const levelSection = document.createElement('div');
+          levelSection.className = 'date-section';
+          
+          const levelHeader = document.createElement('div');
+          levelHeader.className = 'date-header';
+          levelHeader.innerHTML = `
+            <div class="date-info">
+              <span class="level-badge level-${level}">Level ${level}</span>
+              <span class="date-word-count">(${levelWords.length} word${levelWords.length !== 1 ? 's' : ''})</span>
+            </div>
+            <span class="toggle-icon">▼</span>
+          `;
+
+          const wordContainer = document.createElement('div');
+          wordContainer.className = 'word-container';
+
+          // Sort words by date within each level
+          levelWords.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+          levelWords.forEach(wordObj => {
+            const wordItem = createWordItem(wordObj);
+            wordContainer.appendChild(wordItem);
+          });
+
+          levelSection.appendChild(levelHeader);
+          levelSection.appendChild(wordContainer);
+          learningList.appendChild(levelSection);
+
+          // Add click event for collapsible functionality
+          levelHeader.addEventListener('click', () => {
+            levelSection.classList.toggle('collapsed');
+            const toggleIcon = levelHeader.querySelector('.toggle-icon');
+            toggleIcon.textContent = levelSection.classList.contains('collapsed') ? '▶' : '▼';
+          });
+        }
+      }
+
+      // Update word count
+      wordCount.textContent = `Total Words: ${words.length}`;
     });
   }
 
@@ -121,7 +290,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const words = result.words || [];
       const updatedWords = words.filter(word => word.word !== wordToDelete);
       chrome.storage.local.set({ words: updatedWords }, () => {
-        loadWords(); // Reload the word list after deletion
+        // Reload both views to keep them in sync
+        loadWords();
+        loadLearningProgress();
+        
+        // Update the active view based on current tab
+        const activeTab = document.querySelector('.tab.active');
+        if (activeTab.dataset.tab === 'learning') {
+          loadLearningProgress();
+        } else {
+          loadWords();
+        }
       });
     });
   }
@@ -320,19 +499,51 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Toggle dropdown menu
-  exportBtn.addEventListener('click', () => {
+  exportBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
     exportDropdown.classList.toggle('show');
   });
 
   // Close dropdown when clicking outside
-  window.addEventListener('click', (event) => {
-    if (!event.target.matches('.export-btn')) {
-      if (exportDropdown.classList.contains('show')) {
-        exportDropdown.classList.remove('show');
-      }
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#exportBtn') && !e.target.closest('#exportDropdown')) {
+      exportDropdown.classList.remove('show');
     }
   });
 
-  // Initial load
-  loadWords();
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.classList.contains('level-badge')) {
+      const allDropdowns = document.querySelectorAll('.level-dropdown');
+      allDropdowns.forEach(d => d.classList.remove('show'));
+    }
+  });
+
+  // Info panel functionality
+  document.querySelector('.icon-wrapper:has(.info-icon)').addEventListener('click', () => {
+    infoPanel.classList.toggle('show');
+  });
+
+  // Settings panel functionality
+  document.querySelector('.icon-wrapper:has(.settings-icon)').addEventListener('click', () => {
+    // Close info panel if it's open
+    infoPanel.classList.remove('show');
+    settingsPanel.classList.toggle('show');
+  });
+
+  // Close panels when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.icon-wrapper') && 
+        !e.target.closest('.settings-panel') && 
+        !e.target.closest('#exportDropdown')) {
+      settingsPanel.classList.remove('show');
+    }
+    if (!e.target.closest('.icon-wrapper') && 
+        !e.target.closest('.info-panel')) {
+      infoPanel.classList.remove('show');
+    }
+  });
+
+  // Initial load - starting with Learning Progress
+  loadLearningProgress();
 });
