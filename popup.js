@@ -45,7 +45,40 @@ document.addEventListener('DOMContentLoaded', () => {
       4: "Very well learned - Strong knowledge of the word",
       5: "Mastered - Complete mastery of the word"
     };
-    return `<span class="level-badge level-${level}" data-level="${level}" data-tooltip="${tooltips[level]}">Level ${level}</span>`;
+
+    const checkIcon = level < 5 ? `
+      <span class="level-up-icon" title="Level up" data-level="${level}">
+        <svg viewBox="0 0 24 24" width="16" height="16">
+          <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+        </svg>
+      </span>
+    ` : '';
+
+    return `<span class="level-badge level-${level}" data-level="${level}" data-tooltip="${tooltips[level]}">
+      Level ${level}${checkIcon}
+    </span>`;
+  }
+
+  function levelUp(word, currentLevel) {
+    if (currentLevel >= 5) return; // Maximum level kontrol
+    
+    const newLevel = currentLevel + 1;
+    chrome.storage.local.get(['words'], result => {
+      const words = result.words || [];
+      const wordIndex = words.findIndex(w => w.word === word);
+      
+      if (wordIndex !== -1) {
+        words[wordIndex].level = newLevel;
+        chrome.storage.local.set({ words }, () => {
+          const activeTab = document.querySelector('.tab.active');
+          if (activeTab.dataset.tab === 'learning') {
+            loadLearningProgress();
+          } else {
+            loadWords();
+          }
+        });
+      }
+    });
   }
 
   function createLevelDropdown(wordObj) {
@@ -77,13 +110,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function createWordItem(wordObj) {
+    const activeTab = document.querySelector('.tab.active');
+    const isLearningTab = activeTab.dataset.tab === 'learning';
+
     const wordItem = document.createElement('div');
     wordItem.className = 'word-item';
     wordItem.innerHTML = `
       <span class="word-text">
         ${wordObj.count > 1 ? `<span class="word-count-badge">${wordObj.count}</span>` : ''}
         ${wordObj.word}
-        ${createLevelBadge(wordObj.level || 1)}
+        ${isLearningTab ? createLevelBadge(wordObj.level || 1) : `<span class="level-badge level-${wordObj.level || 1}" data-level="${wordObj.level || 1}">Level ${wordObj.level || 1}</span>`}
       </span>
       <div class="word-actions">
         <span class="sound-icon" title="Play Sound" data-word="${wordObj.word}">🎧</span>
@@ -94,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
-    // Create and append level dropdown
+    // Create and append level dropdown for both tabs
     const dropdown = document.createElement('div');
     dropdown.className = 'level-dropdown';
     dropdown.innerHTML = Array.from({length: 5}, (_, i) => i + 1)
@@ -102,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .join('');
     wordItem.appendChild(dropdown);
 
-    // Level badge click handler
+    // Level badge click handler for both tabs
     const levelBadge = wordItem.querySelector('.level-badge');
     levelBadge.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -116,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!dropdown.classList.contains('show')) {
         const badgeRect = levelBadge.getBoundingClientRect();
         dropdown.style.position = 'absolute';
-        dropdown.style.left = `${badgeRect.width + 10}px`; // Level badge'in sağında
+        dropdown.style.left = `${badgeRect.width + 10}px`;
         dropdown.style.top = '50%';
         dropdown.style.transform = 'translateY(-50%)';
       }
@@ -124,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
       dropdown.classList.toggle('show');
     });
 
-    // Level options click handler
+    // Level options click handler for both tabs
     dropdown.addEventListener('click', (e) => {
       const option = e.target.closest('.level-option');
       if (option) {
@@ -134,6 +170,18 @@ document.addEventListener('DOMContentLoaded', () => {
         updateWordLevel(word, newLevel);
       }
     });
+
+    // Level up icon click handler (only in Learning tab)
+    if (isLearningTab) {
+      const levelUpIcon = wordItem.querySelector('.level-up-icon');
+      if (levelUpIcon) {
+        levelUpIcon.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const currentLevel = parseInt(e.currentTarget.dataset.level);
+          levelUp(wordObj.word, currentLevel);
+        });
+      }
+    }
 
     // Add other event listeners
     const wordText = wordItem.querySelector('.word-text');
