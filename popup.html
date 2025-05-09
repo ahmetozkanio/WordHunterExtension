@@ -127,6 +127,35 @@
       justify-content: flex-end;
     }
 
+    .button-group {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    .import-export-group {
+      display: flex;
+      gap: 5px;
+    }
+
+    .import-btn {
+      padding: 0px 8px;
+      color: #5D5B5BFF;
+      border: none;
+      height: 32px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .import-btn:hover {
+      background-color: #1976D2;
+      color: white;
+    }
+
+    .file-input {
+      display: none;
+    }
+
   </style>
 </head>
 <body>
@@ -138,13 +167,17 @@
   </a>
   <div class="word-count" id="wordCount"></div>
   <div class="word-list" id="wordList"></div>
-  <div class="export-group">
-    <button class="export-btn" id="exportCsvBtn">CSV</button>
-    <button class="export-btn" id="exportJsonBtn">JSON</button>
-    <button class="export-btn" id="exportTxtBtn">TXT</button>
-
-
-</html></body>  </div>
+  <div class="button-group">
+    <div class="import-export-group">
+      <input type="file" id="fileInput" class="file-input" accept=".csv,.json,.txt">
+      <button class="import-btn" id="importBtn">Import</button>
+    </div>
+    <div class="import-export-group">
+      <button class="export-btn" id="exportCsvBtn">CSV</button>
+      <button class="export-btn" id="exportJsonBtn">JSON</button>
+      <button class="export-btn" id="exportTxtBtn">TXT</button>
+    </div>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>

@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportJsonBtn = document.getElementById('exportJsonBtn');
   const exportTxtBtn = document.getElementById('exportTxtBtn');
   const wordCount = document.getElementById('wordCount');
+  const importBtn = document.getElementById('importBtn');
+  const fileInput = document.getElementById('fileInput');
 
   // Load and display saved words
   function loadWords() {
@@ -113,6 +115,96 @@ document.addEventListener('DOMContentLoaded', () => {
       link.download = 'wordhunter.txt';
       link.click();
     });
+  });
+
+  // Import functionality
+  importBtn.addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      let importedWords = [];
+      const fileContent = e.target.result;
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+
+      try {
+        switch (fileExtension) {
+          case 'json':
+            importedWords = JSON.parse(fileContent);
+            // Validate JSON structure
+            if (!Array.isArray(importedWords)) {
+              throw new Error('Invalid JSON format. Expected an array of words.');
+            }
+            importedWords = importedWords.map(item => ({
+              word: item.word || '',
+              date: item.date || new Date().toISOString()
+            }));
+            break;
+
+          case 'csv':
+            const lines = fileContent.split('\n');
+            // Skip header row and process each line
+            for (let i = 1; i < lines.length; i++) {
+              const line = lines[i].trim();
+              if (line) {
+                const [word, date] = line.split(';').map(item => 
+                  item.replace(/^"(.*)"$/, '$1').trim()
+                );
+                if (word) {
+                  importedWords.push({
+                    word,
+                    date: date || new Date().toISOString()
+                  });
+                }
+              }
+            }
+            break;
+
+          case 'txt':
+            const words = fileContent.split('\n');
+            importedWords = words
+              .map(word => word.trim())
+              .filter(word => word.length > 0)
+              .map(word => ({
+                word,
+                date: new Date().toISOString()
+              }));
+            break;
+
+          default:
+            throw new Error('Unsupported file format');
+        }
+
+        // Merge imported words with existing words
+        chrome.storage.local.get(['words'], result => {
+          const existingWords = result.words || [];
+          const newWords = [...existingWords];
+          
+          // Add only non-duplicate words
+          importedWords.forEach(importedWord => {
+            if (!existingWords.some(existing => existing.word === importedWord.word)) {
+              newWords.push(importedWord);
+            }
+          });
+
+          chrome.storage.local.set({ words: newWords }, () => {
+            loadWords(); // Refresh the word list
+            fileInput.value = ''; // Reset file input
+          });
+        });
+
+      } catch (error) {
+        console.error('Import error:', error);
+        alert('Error importing file. Please check the file format.');
+      }
+    };
+
+    reader.readAsText(file);
   });
 
   // Initial load
