@@ -46,14 +46,86 @@ floatingButton.addEventListener('click', () => {
   const selectedText = window.getSelection().toString().trim();
   if (selectedText && chrome && chrome.storage && chrome.storage.local) {
     chrome.storage.local.get(['words'], result => {
-      const words = (result && result.words) ? result.words : [];
-      words.push({
+      const words = result.words || [];
+      
+      // Check if word already exists
+      const existingWordIndex = words.findIndex(w => w.word === selectedText);
+      if (existingWordIndex !== -1) {
+        // Increment count if word exists
+        words[existingWordIndex].count = (words[existingWordIndex].count || 1) + 1;
+        words[existingWordIndex].date = new Date().toISOString(); // Update date
+        chrome.storage.local.set({ words }, () => {
+          if (chrome.runtime.lastError) {
+            showFeedback('Error updating word', 'error');
+          } else {
+            showFeedback(`"${selectedText}" (${words[existingWordIndex].count})`, 'warning');
+          }
+          floatingButton.style.display = 'none';
+        });
+        return;
+      }
+
+      // Add new word with count
+      const newWord = {
         word: selectedText,
-        date: new Date().toISOString()
-      });
+        date: new Date().toISOString(),
+        count: 1
+      };
+      words.push(newWord);
+
       chrome.storage.local.set({ words }, () => {
+        if (chrome.runtime.lastError) {
+          showFeedback('Error saving word', 'error');
+        } else {
+          showFeedback(`"${selectedText}" saved!`, 'success');
+        }
         floatingButton.style.display = 'none';
       });
     });
   }
 });
+
+// Create feedback element
+const feedback = document.createElement('div');
+feedback.style.cssText = `
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  z-index: 999999;
+  display: none;
+  transition: opacity 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+`;
+document.body.appendChild(feedback);
+
+function showFeedback(message, type) {
+  feedback.textContent = message;
+  feedback.style.display = 'block';
+  feedback.style.opacity = '1';
+  
+  switch(type) {
+    case 'success':
+      feedback.style.backgroundColor = '#4CAF50';
+      feedback.style.color = 'white';
+      break;
+    case 'warning':
+      feedback.style.backgroundColor = '#ff9800';
+      feedback.style.color = 'white';
+      break;
+    case 'error':
+      feedback.style.backgroundColor = '#f44336';
+      feedback.style.color = 'white';
+      break;
+  }
+
+  setTimeout(() => {
+    feedback.style.opacity = '0';
+    setTimeout(() => {
+      feedback.style.display = 'none';
+    }, 300);
+  }, 2000);
+}

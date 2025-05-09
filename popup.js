@@ -18,18 +18,21 @@ document.addEventListener('DOMContentLoaded', () => {
       wordList.innerHTML = '';
       
       words.sort((a, b) => new Date(b.date) - new Date(a.date))
-        .forEach(word => {
+        .forEach(wordObj => {
           const wordItem = document.createElement('div');
           wordItem.className = 'word-item';
           wordItem.innerHTML = `
-            <span class="word-text" data-word="${word.word}">${word.word}</span>
+            <span class="word-text">
+              ${wordObj.count > 1 ? `<span class="word-count-badge">${wordObj.count}</span>` : ''}
+              ${wordObj.word}
+            </span>
             <div class="word-actions">
-              <span class="word-date" title="${new Date(word.date).toLocaleString()}">${new Date(word.date).toLocaleDateString()}</span>
-              <span class="sound-icon" title="Play Sound" data-word="${word.word}">📢</span>
-              <a href="https://translate.google.com/?sl=auto&tl=tr&text=${encodeURIComponent(word.word)}&op=translate" target="_blank" title="Google Translate">
+              <span class="word-date" title="${new Date(wordObj.date).toLocaleString()}">${new Date(wordObj.date).toLocaleDateString()}</span>
+              <span class="sound-icon" title="Play Sound" data-word="${wordObj.word}">📢</span>
+              <a href="https://translate.google.com/?sl=auto&tl=tr&text=${encodeURIComponent(wordObj.word)}&op=translate" target="_blank" title="Google Translate">
                 <img src="images/google-translate-icon.png" alt="Google Translate" class="icon">
               </a>
-              <span class="delete-icon" title="Delete" data-word="${word.word}">❌</span>
+              <span class="delete-icon" title="Delete" data-word="${wordObj.word}">❌</span>
             </div>
           `;
 
@@ -80,11 +83,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Function to handle word editing
   function handleWordEdit(event) {
-    const wordSpan = event.target;
-    const originalWord = wordSpan.getAttribute('data-word');
+    // Get the word-text span (either the clicked element or its parent)
+    const wordSpan = event.target.classList.contains('word-text') ? 
+                    event.target : 
+                    event.target.closest('.word-text');
+    
+    // Find the actual word content (skip the count badge if it exists)
+    const wordContent = Array.from(wordSpan.childNodes)
+      .filter(node => node.nodeType === Node.TEXT_NODE)
+      .map(node => node.textContent.trim())
+      .join('');
+
     const input = document.createElement('input');
     input.type = 'text';
-    input.value = originalWord;
+    input.value = wordContent;
     input.className = 'edit-input';
     
     // Replace the span with input
@@ -94,10 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function saveEdit() {
       const newWord = input.value.trim();
-      if (newWord && newWord !== originalWord) {
+      if (newWord && newWord !== wordContent) {
         chrome.storage.local.get(['words'], result => {
           const words = result.words || [];
-          const wordIndex = words.findIndex(w => w.word === originalWord);
+          const wordIndex = words.findIndex(w => w.word === wordContent);
           
           if (wordIndex !== -1) {
             words[wordIndex].word = newWord;
