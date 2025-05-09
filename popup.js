@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const wordCount = document.getElementById('wordCount');
   const importBtn = document.getElementById('importBtn');
   const fileInput = document.getElementById('fileInput');
+  const exportBtn = document.getElementById('exportBtn');
+  const exportDropdown = document.getElementById('exportDropdown');
 
   // Load and display saved words
   function loadWords() {
@@ -205,6 +207,20 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     reader.readAsText(file);
+  });
+
+  // Toggle dropdown menu
+  exportBtn.addEventListener('click', () => {
+    exportDropdown.classList.toggle('show');
+  });
+
+  // Close dropdown when clicking outside
+  window.addEventListener('click', (event) => {
+    if (!event.target.matches('.export-btn')) {
+      if (exportDropdown.classList.contains('show')) {
+        exportDropdown.classList.remove('show');
+      }
+    }
   });
 
   // Initial load

@@ -129,8 +129,11 @@
 
     .button-group {
       display: flex;
-      gap: 10px;
-      justify-content: space-between;
+      align-items: center;
+      justify-content: flex-start; /* Changed to align from start */
+      margin-top: 10px;
+      gap: 12px;
+      padding: 0 5px;
     }
 
     .import-export-group {
@@ -138,23 +141,83 @@
       gap: 5px;
     }
 
-    .import-btn {
-      padding: 0px 8px;
-      color: #5D5B5BFF;
-      border: none;
-      height: 32px;
-      border-radius: 4px;
-      cursor: pointer;
+    .import-export-group:last-child {
+      margin-left: auto; /* Push export button to the right */
     }
 
-    .import-btn:hover {
-      background-color: #1976D2;
-      color: white;
+    .import-btn, .export-btn {
+      padding: 8px 16px;
+      color: #333;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .import-btn:hover, .export-btn:hover {
+      border-color: #2196F3;
+      color: #2196F3;
+      background-color: #f8f9fa;
     }
 
     .file-input {
       display: none;
     }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      bottom: 100%;
+      margin-bottom: 5px;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 1;
+    }
+
+    .dropdown-content button {
+      width: 100%;
+      padding: 8px 16px;
+      background: none;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      color: #333;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .dropdown-content button:hover {
+      background-color: #f8f9fa;
+      color: #2196F3;
+    }
+
+    .dropdown-content button:first-child {
+      border-radius: 6px 6px 0 0;
+    }
+
+    .dropdown-content button:last-child {
+      border-radius: 0 0 6px 6px;
+    }
+
+    .show {
+      display: block;
+    }
+
 
   </style>
 </head>
@@ -173,9 +236,14 @@
       <button class="import-btn" id="importBtn">Import</button>
     </div>
     <div class="import-export-group">
-      <button class="export-btn" id="exportCsvBtn">CSV</button>
-      <button class="export-btn" id="exportJsonBtn">JSON</button>
-      <button class="export-btn" id="exportTxtBtn">TXT</button>
+      <div class="dropdown">
+        <button class="export-btn" id="exportBtn">Export</button>
+        <div class="dropdown-content" id="exportDropdown">
+          <button id="exportCsvBtn">CSV</button>
+          <button id="exportJsonBtn">JSON</button>
+          <button id="exportTxtBtn">TXT</button>
+        </div>
+      </div>
     </div>
   </div>
   <script src="popup.js"></script>
