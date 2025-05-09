@@ -17,11 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
           wordItem.innerHTML = `
             <span class="word-text">${word.text}</span>
             <div class="word-actions">
+              <span class="word-date" title="${new Date(word.date).toLocaleString()}">${new Date(word.date).toLocaleDateString()}</span>
               <span class="sound-icon" title="Play Sound" data-word="${word.text}">📢</span>
               <a href="https://translate.google.com/?sl=auto&tl=tr&text=${encodeURIComponent(word.text)}&op=translate" target="_blank" title="Google Translate">
                 <img src="images/google-translate-icon.png" alt="Google Translate" class="icon">
               </a>
-              <span class="word-date">${new Date(word.date).toLocaleString()}</span>
               <span class="delete-icon" title="Delete" data-word="${word.text}">❌</span>
             </div>
           `;
