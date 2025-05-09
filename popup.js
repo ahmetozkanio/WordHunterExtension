@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const wordItem = document.createElement('div');
           wordItem.className = 'word-item';
           wordItem.innerHTML = `
-            <span class="word-text">${word.word}</span>
+            <span class="word-text" data-word="${word.word}">${word.word}</span>
             <div class="word-actions">
               <span class="word-date" title="${new Date(word.date).toLocaleString()}">${new Date(word.date).toLocaleDateString()}</span>
               <span class="sound-icon" title="Play Sound" data-word="${word.word}">📢</span>
@@ -32,6 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="delete-icon" title="Delete" data-word="${word.word}">❌</span>
             </div>
           `;
+
+          // Add double click event listener for editing
+          const wordText = wordItem.querySelector('.word-text');
+          wordText.addEventListener('dblclick', handleWordEdit);
 
           wordList.appendChild(wordItem);
         });
@@ -72,6 +76,55 @@ document.addEventListener('DOMContentLoaded', () => {
         loadWords(); // Reload the word list after deletion
       });
     });
+  }
+
+  // Function to handle word editing
+  function handleWordEdit(event) {
+    const wordSpan = event.target;
+    const originalWord = wordSpan.getAttribute('data-word');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = originalWord;
+    input.className = 'edit-input';
+    
+    // Replace the span with input
+    wordSpan.style.display = 'none';
+    wordSpan.parentNode.insertBefore(input, wordSpan);
+    input.focus();
+
+    function saveEdit() {
+      const newWord = input.value.trim();
+      if (newWord && newWord !== originalWord) {
+        chrome.storage.local.get(['words'], result => {
+          const words = result.words || [];
+          const wordIndex = words.findIndex(w => w.word === originalWord);
+          
+          if (wordIndex !== -1) {
+            words[wordIndex].word = newWord;
+            chrome.storage.local.set({ words }, () => {
+              loadWords(); // Reload the word list
+            });
+          }
+        });
+      } else {
+        // If no changes or empty, just restore the original display
+        wordSpan.style.display = '';
+        input.remove();
+      }
+    }
+
+    // Save on enter key
+    input.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') {
+        saveEdit();
+      } else if (e.key === 'Escape') {
+        wordSpan.style.display = '';
+        input.remove();
+      }
+    });
+
+    // Save on blur (when input loses focus)
+    input.addEventListener('blur', saveEdit);
   }
 
   // Export to CSV
