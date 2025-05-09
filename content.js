@@ -48,7 +48,7 @@ floatingButton.addEventListener('click', () => {
     chrome.storage.local.get(['words'], result => {
       const words = (result && result.words) ? result.words : [];
       words.push({
-        text: selectedText,
+        word: selectedText,
         date: new Date().toISOString()
       });
       chrome.storage.local.set({ words }, () => {
@@ -56,4 +56,4 @@ floatingButton.addEventListener('click', () => {
       });
     });
   }
-}); 
+});
