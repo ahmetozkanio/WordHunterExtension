@@ -17,31 +17,76 @@ document.addEventListener('DOMContentLoaded', () => {
       
       wordList.innerHTML = '';
       
-      words.sort((a, b) => new Date(b.date) - new Date(a.date))
-        .forEach(wordObj => {
-          const wordItem = document.createElement('div');
-          wordItem.className = 'word-item';
-          wordItem.innerHTML = `
-            <span class="word-text">
-              ${wordObj.count > 1 ? `<span class="word-count-badge">${wordObj.count}</span>` : ''}
-              ${wordObj.word}
-            </span>
-            <div class="word-actions">
-              <span class="word-date" title="${new Date(wordObj.date).toLocaleString()}">${new Date(wordObj.date).toLocaleDateString()}</span>
-              <span class="sound-icon" title="Play Sound" data-word="${wordObj.word}">📢</span>
-              <a href="https://translate.google.com/?sl=auto&tl=tr&text=${encodeURIComponent(wordObj.word)}&op=translate" target="_blank" title="Google Translate">
-                <img src="images/google-translate-icon.png" alt="Google Translate" class="icon">
-              </a>
-              <span class="delete-icon" title="Delete" data-word="${wordObj.word}">❌</span>
-            </div>
-          `;
+      // Group words by date
+      const groupedWords = words.reduce((groups, word) => {
+        const date = new Date(word.date);
+        const dateKey = date.toLocaleDateString();
+        if (!groups[dateKey]) {
+          groups[dateKey] = [];
+        }
+        groups[dateKey].push(word);
+        return groups;
+      }, {});
 
-          // Add double click event listener for editing
-          const wordText = wordItem.querySelector('.word-text');
-          wordText.addEventListener('dblclick', handleWordEdit);
+      // Sort dates in descending order
+      const sortedDates = Object.keys(groupedWords).sort((a, b) => 
+        new Date(b) - new Date(a)
+      );
 
-          wordList.appendChild(wordItem);
+      // Create sections for each date
+      sortedDates.forEach(dateKey => {
+        const dateWords = groupedWords[dateKey];
+        const dateSection = document.createElement('div');
+        dateSection.className = 'date-section';
+        
+        const dateHeader = document.createElement('div');
+        dateHeader.className = 'date-header';
+        const wordCount = dateWords.length;
+        dateHeader.innerHTML = `
+          <div class="date-info">
+            <span class="date-text">${dateKey}</span>
+            <span class="date-word-count">(${wordCount} word${wordCount !== 1 ? 's' : ''})</span>
+          </div>
+          <span class="toggle-icon">▼</span>
+        `;
+
+        const wordContainer = document.createElement('div');
+        wordContainer.className = 'word-container';
+
+        dateWords.sort((a, b) => new Date(b.date) - new Date(a.date))
+          .forEach(wordObj => {
+            const wordItem = document.createElement('div');
+            wordItem.className = 'word-item';
+            wordItem.innerHTML = `
+              <span class="word-text">
+                ${wordObj.count > 1 ? `<span class="word-count-badge">${wordObj.count}</span>` : ''}
+                ${wordObj.word}
+              </span>
+              <div class="word-actions">
+                <span class="sound-icon" title="Play Sound" data-word="${wordObj.word}">📢</span>
+                <a href="https://translate.google.com/?sl=auto&tl=tr&text=${encodeURIComponent(wordObj.word)}&op=translate" target="_blank" title="Google Translate">
+                  <img src="images/google-translate-icon.png" alt="Google Translate" class="icon">
+                </a>
+                <span class="delete-icon" title="Delete" data-word="${wordObj.word}">❌</span>
+              </div>
+            `;
+
+            const wordText = wordItem.querySelector('.word-text');
+            wordText.addEventListener('dblclick', handleWordEdit);
+            wordContainer.appendChild(wordItem);
+          });
+
+        dateSection.appendChild(dateHeader);
+        dateSection.appendChild(wordContainer);
+        wordList.appendChild(dateSection);
+
+        // Add click event for collapsible functionality
+        dateHeader.addEventListener('click', () => {
+          dateSection.classList.toggle('collapsed');
+          const toggleIcon = dateHeader.querySelector('.toggle-icon');
+          toggleIcon.textContent = dateSection.classList.contains('collapsed') ? '▶' : '▼';
         });
+      });
 
       // Add event listeners for sound icons
       const soundIcons = document.querySelectorAll('.sound-icon');

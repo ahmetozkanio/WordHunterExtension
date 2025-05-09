@@ -242,6 +242,68 @@
       vertical-align: middle;
     }
 
+    .date-section {
+      margin-bottom: 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .date-header {
+      padding: 10px;
+      background-color: #f8f9fa;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .date-header:hover {
+      background-color: #f1f1f1;
+    }
+
+    .date-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .date-text {
+      font-weight: 500;
+      color: #2196F3;
+    }
+
+    .date-word-count {
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .toggle-icon {
+      color: #666;
+      font-size: 0.8em;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .word-container {
+      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      max-height: 1000px;
+      overflow: hidden;
+    }
+
+    .date-section.collapsed .word-container {
+      max-height: 0;
+    }
+
+    .date-section.collapsed .date-header {
+      border-bottom: none;
+    }
+
+    .date-section.collapsed .toggle-icon {
+      transform: rotate(-90deg);
+    }
   </style>
 </head>
 <body>
