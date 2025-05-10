@@ -4,28 +4,37 @@ if (oldBtn) oldBtn.remove();
 
 const floatingButton = document.createElement('button');
 floatingButton.id = 'wordhunter-btn';
-floatingButton.innerHTML = '⭐️';
+floatingButton.innerHTML = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 24 24">
+    <path d="M12 .587l3.668 7.431 8.2 1.191-5.934 5.782 1.402 8.173L12 18.897l-7.336 3.857 1.402-8.173L.132 9.209l8.2-1.191z"/>
+  </svg>
+`;
 floatingButton.style.cssText = `
   position: absolute;
   display: none;
-  background: #e0e0e0;
-  color: #444;
+  background: #fbc02d;
+  color: white;
   border: none;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  padding: 2px 6px;
-  font-size: 16px;
+  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   cursor: pointer;
   z-index: 99999;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 `;
 floatingButton.onmouseover = () => {
-  floatingButton.style.background = '#bdbdbd';
-  floatingButton.style.color = '#222';
+  floatingButton.style.transform = 'scale(1.1)';
+  floatingButton.style.background = '#E48F08FF';
 };
 floatingButton.onmouseout = () => {
-  floatingButton.style.background = '#e0e0e0';
-  floatingButton.style.color = '#444';
+  floatingButton.style.transform = 'scale(1)';
+  floatingButton.style.background = '#f9a825';
 };
 
 document.body.appendChild(floatingButton);
@@ -130,3 +139,19 @@ function showFeedback(message, type) {
     }, 300);
   }, 2000);
 }
+
+// Close floating button when clicking outside or clearing selection
+document.addEventListener('mousedown', (e) => {
+  const isClickInsideButton = e.target.id === 'wordhunter-btn';
+  const selectedText = window.getSelection().toString().trim();
+  if (!isClickInsideButton && !selectedText) {
+    floatingButton.style.display = 'none';
+  }
+});
+
+document.addEventListener('selectionchange', () => {
+  const selectedText = window.getSelection().toString().trim();
+  if (!selectedText) {
+    floatingButton.style.display = 'none';
+  }
+});
