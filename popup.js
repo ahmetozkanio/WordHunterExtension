@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ` : '';
 
     return `<span class="level-badge level-${level}" data-level="${level}" data-tooltip="${tooltips[level]}">
-      Level ${level}${checkIcon}
+      ${level}${checkIcon}
     </span>`;
   }
 
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <span class="word-text">
         ${wordObj.count > 1 ? `<span class="word-count-badge">${wordObj.count}</span>` : ''}
         ${wordObj.word}
-        ${isLearningTab ? createLevelBadge(wordObj.level || 1) : `<span class="level-badge level-${wordObj.level || 1}" data-level="${wordObj.level || 1}">Level ${wordObj.level || 1}</span>`}
+        ${isLearningTab ? createLevelBadge(wordObj.level || 1) : `<span class="level-badge level-${wordObj.level || 1}" data-level="${wordObj.level || 1}">${wordObj.level || 1}</span>`}
       </span>
       <div class="word-actions">
         <span class="sound-icon" title="Play Sound" data-word="${wordObj.word}">🎧</span>
@@ -129,14 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="delete-icon" title="Delete" data-word="${wordObj.word}">❌</span>
       </div>
     `;
-
-    // Create and append level dropdown for both tabs
-    const dropdown = document.createElement('div');
-    dropdown.className = 'level-dropdown';
-    dropdown.innerHTML = Array.from({length: 5}, (_, i) => i + 1)
-      .map(level => `<span class="level-option level-${level}" data-level="${level}" data-word="${wordObj.word}">Level ${level}</span>`)
-      .join('');
-    wordItem.appendChild(dropdown);
 
     // Level badge click handler for both tabs
     const levelBadge = wordItem.querySelector('.level-badge');
@@ -148,17 +140,20 @@ document.addEventListener('DOMContentLoaded', () => {
           d.classList.remove('show');
         }
       });
-      
-      if (!dropdown.classList.contains('show')) {
-        const badgeRect = levelBadge.getBoundingClientRect();
-        dropdown.style.position = 'absolute';
-        dropdown.style.left = `${badgeRect.width + 10}px`;
-        dropdown.style.top = '50%';
-        dropdown.style.transform = 'translateY(-50%)';
-      }
-      
       dropdown.classList.toggle('show');
     });
+
+    // Create and append level dropdown for both tabs
+    const dropdown = document.createElement('div');
+    dropdown.className = 'level-dropdown';
+    dropdown.innerHTML = Array.from({length: 5}, (_, i) => i + 1)
+      .map(level => `<span class="level-option level-${level} ${level === (wordObj.level || 1) ? 'current' : ''}" 
+        data-level="${level}" 
+        data-word="${wordObj.word}">
+        ${level}
+      </span>`)
+      .join('');
+    levelBadge.appendChild(dropdown);
 
     // Level options click handler for both tabs
     dropdown.addEventListener('click', (e) => {
@@ -238,7 +233,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="date-text">${dateKey}</span>
             <span class="date-word-count">(${wordCount} word${wordCount !== 1 ? 's' : ''})</span>
           </div>
-          <span class="toggle-icon">▼</span>
+          <span class="toggle-icon">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+            </svg>
+          </span>
         `;
 
         const wordContainer = document.createElement('div');
@@ -257,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dateHeader.addEventListener('click', () => {
           dateSection.classList.toggle('collapsed');
           const toggleIcon = dateHeader.querySelector('.toggle-icon');
-          toggleIcon.textContent = dateSection.classList.contains('collapsed') ? '▶' : '▼';
+          toggleIcon.style.transform = dateSection.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0)';
         });
       });
     });
@@ -296,7 +295,11 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="level-badge level-${level}">Level ${level}</span>
               <span class="date-word-count">(${levelWords.length} word${levelWords.length !== 1 ? 's' : ''})</span>
             </div>
-            <span class="toggle-icon">▼</span>
+            <span class="toggle-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+              </svg>
+            </span>
           `;
 
           const wordContainer = document.createElement('div');
@@ -318,7 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
           levelHeader.addEventListener('click', () => {
             levelSection.classList.toggle('collapsed');
             const toggleIcon = levelHeader.querySelector('.toggle-icon');
-            toggleIcon.textContent = levelSection.classList.contains('collapsed') ? '▶' : '▼';
+            toggleIcon.style.transform = levelSection.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0)';
           });
         }
       }

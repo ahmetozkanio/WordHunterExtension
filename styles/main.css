@@ -1,0 +1,988 @@
+:root {
+    /* Color Palette */
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --primary-light: #3b82f6;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #0ea5e9;
+    
+    /* Neutral Colors */
+    --neutral-50: #f8fafc;
+    --neutral-100: #f1f5f9;
+    --neutral-200: #e2e8f0;
+    --neutral-300: #cbd5e1;
+    --neutral-400: #94a3b8;
+    --neutral-500: #64748b;
+    --neutral-600: #475569;
+    --neutral-700: #334155;
+    
+    /* Typography */
+    --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    
+    /* Spacing */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    
+    /* Border Radius */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+body {
+    width: 400px !important;
+    min-height: 300px;
+    padding: var(--space-4);
+    font-family: var(--font-sans);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    margin: 0;
+    background-color: var(--neutral-50);
+    color: var(--neutral-700);
+}
+
+.word-list {
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--neutral-300) var(--neutral-100);
+}
+
+.word-item {
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--neutral-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    background-color: white;
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+}
+
+.word-item:hover {
+    background-color: var(--neutral-100);
+    /* transform: translateY(-1px); */
+    box-shadow: var(--shadow-sm);
+}
+
+.word-text {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    cursor: text;
+    color: var(--neutral-700);
+    position: relative;  /* Level dropdown için positioning context */
+}
+
+.word-date {
+    color: var(--neutral-500);
+    font-size: 0.75rem;
+    margin-left: var(--space-2);
+    white-space: nowrap;
+}
+
+.export-btn, .import-btn {
+    padding: var(--space-2) var(--space-4);
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.export-btn:hover, .import-btn:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+h2 {
+    color: #4CAF50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.export-group {
+    margin-bottom: 10px;
+}
+
+.github-link {
+    position: static;
+    text-decoration: none;
+    color: #333;
+    display: flex;
+    align-items: center;
+}
+
+.github-link:hover {
+    color: #4CAF50;
+}
+
+.github-icon {
+    width: 22px;
+    /* Aynı boyut diğer ikonlarla */
+    height: 22px;
+    display: block;
+    transition: opacity 0.2s ease;
+    padding: 3px;
+    box-sizing: border-box;
+    opacity: 0.7;
+    /* Başlangıç opaklığı */
+}
+
+.github-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.github-link:hover {
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+.github-link:hover .github-icon {
+    opacity: 1;
+}
+
+h2.header {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    position: relative;
+}
+
+.title {
+    flex-grow: 1;
+    color: #4CAF50;
+    font-size: 1.1em;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Adjusting the size of the sound icon and adding spacing */
+.sound-icon {
+    font-size: 16px;
+    cursor: pointer;
+    margin-left: 5px;
+    /* Add spacing between icons */
+}
+
+/* Delete icon styling */
+.delete-icon {
+    color: #ff0000;
+    cursor: pointer;
+    font-size: 10px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    margin-left: 10px;
+}
+
+.delete-icon:hover {
+    opacity: 1;
+}
+
+.word-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    /* Adding spacing between action items */
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.word-item:hover .word-actions {
+    opacity: 1;
+}
+
+.word-actions img.icon {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+}
+
+.word-count {
+    color: #666;
+    font-size: 0.9em;
+    margin: 5px 0;
+    padding: 5px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.button-group {
+    display: none;
+}
+
+.import-export-group {
+    display: flex;
+    gap: 5px;
+}
+
+.import-export-group:last-child {
+    margin-left: auto;
+    /* Push export button to the right */
+}
+
+.import-btn,
+.export-btn {
+    padding: 8px 16px;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.import-btn:hover,
+.export-btn:hover {
+    border-color: #4CAF50;
+    color: #4CAF50;
+    background-color: #f8f9fa;
+}
+
+.file-input {
+    display: none;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    bottom: 100%;
+    margin-bottom: 5px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+}
+
+.dropdown-content button {
+    width: 100%;
+    padding: 8px 16px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    color: #333;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.dropdown-content button:hover {
+    background-color: #f8f9fa;
+    color: #4CAF50;
+}
+
+.dropdown-content button:first-child {
+    border-radius: 6px 6px 0 0;
+}
+
+.dropdown-content button:last-child {
+    border-radius: 0 0 6px 6px;
+}
+
+.show {
+    display: block;
+}
+
+.edit-input {
+    font-size: inherit;
+    font-family: inherit;
+    border: 1px solid #4CAF50;
+    border-radius: 4px;
+    padding: 2px 6px;
+    outline: none;
+    width: 200px;
+}
+
+.word-count-badge {
+    color: #8B4513;
+    font-weight: bold;
+    font-size: 0.8em;
+    margin-right: 6px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.date-section {
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: var(--space-3);
+    background-color: white;
+    transition: all 0.2s ease;
+}
+
+.date-section:hover {
+    box-shadow: var(--shadow-sm);
+}
+
+.date-header {
+    padding: var(--space-3);
+    background-color: var(--neutral-50);
+    font-weight: 500;
+    color: var(--neutral-700);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-icon {
+    margin-left: auto;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neutral-500);
+    border-radius: 50%;
+    transform: rotate(0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, color 0.2s ease;
+}
+
+.date-section.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.toggle-icon svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+.date-header:hover .toggle-icon {
+    background-color: var(--neutral-200);
+    color: var(--primary);
+}
+
+/* Level header colors */
+.date-header.level-1 {
+    background-color: #ffebee;
+    color: #d32f2f;
+}
+
+.date-header.level-2 {
+    background-color: #fff3e0;
+    color: #f57c00;
+}
+
+.date-header.level-3 {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.date-header.level-4 {
+    background-color: #ebf5ff;
+    color: #3b82f6;
+}
+
+.date-header.level-5 {
+    background-color: #e8f5e9;
+    color: #388e3c;
+}
+
+/* Level header hover effects */
+.date-header.level-1:hover {
+    background-color: #ffcdd2;
+}
+
+.date-header.level-2:hover {
+    background-color: #ffe0b2;
+}
+
+.date-header.level-3:hover {
+    background-color: #bbdefb;
+}
+
+.date-header.level-4:hover {
+    background-color: #dceeff;
+}
+
+.date-header.level-5:hover {
+    background-color: #c8e6c9;
+}
+
+/* Override toggle icon color for each level */
+.date-header.level-1 .toggle-icon {
+    color: #d32f2f;
+}
+
+.date-header.level-2 .toggle-icon {
+    color: #f57c00;
+}
+
+.date-header.level-3 .toggle-icon {
+    color: #1976d2;
+}
+
+.date-header.level-4 .toggle-icon {
+    color: #3b82f6;
+}
+
+.date-header.level-5 .toggle-icon {
+    color: #388e3c;
+}
+
+/* Override word count color for each level */
+.date-header.level-1 .date-word-count {
+    color: #d32f2f;
+    opacity: 0.8;
+}
+
+.date-header.level-2 .date-word-count {
+    color: #f57c00;
+    opacity: 0.8;
+}
+
+.date-header.level-3 .date-word-count {
+    color: #1976d2;
+    opacity: 0.8;
+}
+
+.date-header.level-4 .date-word-count {
+    color: #3b82f6;
+    opacity: 0.8;
+}
+
+.date-header.level-5 .date-word-count {
+    color: #388e3c;
+    opacity: 0.8;
+}
+
+.date-header:hover {
+    background-color: #f1f1f1;
+}
+
+.date-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.date-text {
+    font-weight: 500;
+    color: #2196F3;
+}
+
+.date-word-count {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.toggle-icon {
+    color: #666;
+    font-size: 0.8em;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.word-container {
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 1000px;
+    overflow: hidden;
+    animation: fadeIn 0.3s ease;
+}
+
+.date-section.collapsed .word-container {
+    max-height: 0;
+}
+
+.date-section.collapsed .date-header {
+    border-bottom: none;
+}
+
+.date-section.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.tabs {
+    display: flex;
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--neutral-200);
+    gap: var(--space-2);
+}
+
+.tab {
+    padding: var(--space-2) var(--space-4);
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--neutral-500);
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.tab.active {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+}
+
+.tab:hover {
+    color: var(--primary-dark);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.level-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;  /* Dropdown için positioning context */
+}
+
+.level-up-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    margin-left: 4px;
+}
+
+.level-up-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.level-up-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.level-dropdown {
+    position: absolute;
+    background: white;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    display: none;
+    z-index: 10000;
+    padding: 3px;
+    left: 50%;
+    top: -2px;
+    margin-left: 4px;
+    height: calc(100% + 6px);
+}
+
+.level-dropdown.show {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.level-option {
+    min-width: 20px;
+    height: 20px;
+    padding: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 500;
+    margin: 0 1px;
+}
+
+.level-option.current {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+    background-color: var(--neutral-100) !important;
+    color: var(--neutral-500) !important;
+    border-radius: 50%;
+}
+
+.level-option:not(.current):hover {
+    transform: scale(1.15);
+}
+
+/* Level options background colors */
+.level-option.level-1 { background-color: color-mix(in srgb, var(--danger) 10%, white); }
+.level-option.level-2 { background-color: color-mix(in srgb, var(--warning) 10%, white); }
+.level-option.level-3 { background-color: color-mix(in srgb, var(--info) 10%, white); }
+.level-option.level-4 { background-color: color-mix(in srgb, var(--primary) 10%, white); }
+.level-option.level-5 { background-color: color-mix(in srgb, var(--success) 10%, white); }
+
+/* Level options hover colors */
+.level-option.level-1:not(.current):hover { background-color: color-mix(in srgb, var(--danger) 20%, white); }
+.level-option.level-2:not(.current):hover { background-color: color-mix(in srgb, var(--warning) 20%, white); }
+.level-option.level-3:not(.current):hover { background-color: color-mix(in srgb, var(--info) 20%, white); }
+.level-option.level-4:not(.current):hover { background-color: color-mix(in srgb, var(--primary) 20%, white); }
+.level-option.level-5:not(.current):hover { background-color: color-mix(in srgb, var(--success) 20%, white); }
+
+/* Level colors - organized by learning progress */
+.level-1 {
+    background-color: color-mix(in srgb, var(--danger) 10%, white);
+    color: var(--danger);
+}
+
+.level-2 {
+    background-color: color-mix(in srgb, var(--warning) 10%, white);
+    color: var(--warning);
+}
+
+.level-3 {
+    background-color: color-mix(in srgb, var(--info) 10%, white);
+    color: var(--info);
+}
+
+.level-4 {
+    background-color: color-mix(in srgb, #3b82f6 10%, white);
+    color: #3b82f6;
+}
+
+.level-5 {
+    background-color: color-mix(in srgb, var(--success) 10%, white);
+    color: var(--success);
+}
+
+/* Hover effects for level badges */
+.level-1:hover {
+    background-color: color-mix(in srgb, var(--danger) 20%, white);
+}
+
+.level-2:hover {
+    background-color: color-mix(in srgb, var(--warning) 20%, white);
+}
+
+.level-3:hover {
+    background-color: color-mix(in srgb, var(--info) 20%, white);
+}
+
+.level-4:hover {
+    background-color: color-mix(in srgb, #3b82f6 20%, white);
+}
+
+.level-5:hover {
+    background-color: color-mix(in srgb, var(--success) 20%, white);
+}
+
+/* Tooltip styling */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    font-size: 12px;
+    border-radius: 4px;
+    white-space: nowrap;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    z-index: 1001;
+}
+
+[data-tooltip]:hover:before {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Info panel styling */
+.info-icon {
+    cursor: pointer;
+    font-size: 20px;
+    color: #2196F3;
+    transition: color 0.2s ease;
+}
+
+.info-icon:hover {
+    color: #1976D2;
+}
+
+.info-panel {
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 60px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    width: 280px;
+    z-index: 1000;
+}
+
+.info-panel.show {
+    display: block;
+}
+
+.info-panel h3 {
+    margin: 0 0 10px 0;
+    color: #2196F3;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-panel .close-btn {
+    cursor: pointer;
+    font-size: 18px;
+    color: #666;
+}
+
+.level-info {
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.level-info .level-indicator {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.level-info .level-description {
+    font-size: 12px;
+    color: #666;
+    flex: 1;
+}
+
+/* Remove old tooltip styles */
+[data-tooltip]:before {
+    display: none;
+}
+
+.settings-panel {
+    background-color: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--neutral-200);
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 60px;
+    padding: 15px;
+    width: 200px;
+    z-index: 1000;
+}
+
+.settings-panel.show {
+    display: block;
+}
+
+.settings-panel h3 {
+    margin: 0 0 15px 0;
+    color: #2196F3;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings-panel .close-btn {
+    cursor: pointer;
+    font-size: 18px;
+    color: #666;
+}
+
+.settings-option {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.settings-option:last-child {
+    border-bottom: none;
+}
+
+.settings-btn {
+    display: flex;
+    align-items: center;
+    padding: var(--space-3);
+    width: 100%;
+    background: none;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    color: var(--neutral-700);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+    gap: 8px;
+}
+
+.settings-btn:hover {
+    background-color: var(--neutral-100);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.action-icon {
+    color: var(--neutral-500);
+    transition: all 0.2s ease;
+    padding: var(--space-1);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    padding: 3px;
+    box-sizing: border-box;
+    pointer-events: auto;
+    /* Ensure clicks are detected */
+    width: 28px;
+    /* Increase clickable area */
+    height: 28px;
+    /* Increase clickable area */
+}
+
+.action-icon:hover {
+    color: var(--primary);
+    background-color: var(--neutral-100);
+}
+
+.action-icon path {
+    pointer-events: none;
+    /* Prevent path from interfering with clicks */
+}
+
+.info-icon,
+.settings-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    /* Ensure positioning context */
+}
+
+/* Add wrapper for better click handling */
+.icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.github-icon {
+    width: 22px;
+    height: 22px;
+    display: block;
+    transition: opacity 0.2s ease;
+}
+
+.github-link:hover .github-icon {
+    opacity: 0.7;
+}
+
+/* Update existing icon styles */
+.info-icon,
+.settings-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Remove old emoji-based icon styles */
+.info-icon:hover,
+.settings-icon:hover {
+    color: #2196F3;
+}
+
+/* Export button toggle icon */
+.settings-btn .toggle-icon {
+    margin-left: auto;
+    width: 16px;
+    height: 16px;
+    color: inherit;
+}
+
+.settings-btn:hover .toggle-icon {
+    color: var(--primary);
+}
+
+/* Responsive design improvements */
+@media (max-width: 480px) {
+    body {
+        width: 100%;
+        border-radius: 0;
+        border: none;
+    }
+    
+    .header-actions {
+        gap: var(--space-2);
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
