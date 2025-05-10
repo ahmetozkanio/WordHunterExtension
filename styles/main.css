@@ -83,7 +83,7 @@ body {
     flex-grow: 1;
     cursor: text;
     color: var(--neutral-700);
-    position: relative;  /* Level dropdown için positioning context */
+    position: relative;
 }
 
 .word-date {
@@ -112,7 +112,7 @@ body {
 }
 
 h2 {
-    color: #4CAF50;
+    color: var(--primary);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -129,10 +129,6 @@ h2 {
     color: #333;
     display: flex;
     align-items: center;
-}
-
-.github-link:hover {
-    color: #4CAF50;
 }
 
 .github-icon {
@@ -170,7 +166,7 @@ h2.header {
 
 .title {
     flex-grow: 1;
-    color: #4CAF50;
+    color: var(--primary);
     font-size: 1.1em;
 }
 
@@ -569,37 +565,58 @@ h2.header {
 
 .tabs {
     display: flex;
-    margin-bottom: var(--space-4);
-    border-bottom: 1px solid var(--neutral-200);
-    gap: var(--space-2);
+    margin: var(--space-4) 0;
+    padding: 2px;
+    background-color: var(--neutral-100);
+    border-radius: var(--radius-lg);
+    gap: 2px;
 }
 
 .tab {
-    padding: var(--space-2) var(--space-4);
+    flex: 1;
+    padding: var(--space-2) var(--space-3);
     cursor: pointer;
     border: none;
     background: none;
-    color: var(--neutral-500);
+    color: var(--neutral-600);
     font-size: 0.875rem;
+    font-weight: 500;
     transition: all 0.2s ease;
-    border-bottom: 2px solid transparent;
+    border-radius: var(--radius-md);
+    position: relative;
+    overflow: hidden;
+    text-align: center;
 }
 
 .tab.active {
-    color: var(--primary);
-    border-bottom: 2px solid var(--primary);
+    color: var(--neutral-700);
+    background-color: white;
+    box-shadow: var(--shadow-sm);
 }
 
-.tab:hover {
-    color: var(--primary-dark);
+.tab:hover:not(.active) {
+    color: var(--primary);
+    background-color: var(--neutral-200);
 }
 
 .tab-content {
     display: none;
+    animation: fadeIn 0.3s ease;
 }
 
 .tab-content.active {
     display: block;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(-8px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
 }
 
 .level-badge {
