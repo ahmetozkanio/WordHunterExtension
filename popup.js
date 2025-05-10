@@ -16,6 +16,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const infoPanel = document.querySelector('.info-panel');
   const closeBtn = document.querySelector('.info-panel .close-btn');
 
+  // Icon paths
+  const ICON_PATHS = {
+    sound: "M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z",
+    translate: "M21 4H11l-1-3H3c-1.1 0-2 .9-2 2v15c0 1.1.9 2 2 2h8l1 3h9c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM7 16c-2.76 0-5-2.24-5-5s2.24-5 5-5c1.35 0 2.48.5 3.35 1.3L9.03 8.57c-.38-.36-1.04-.78-2.03-.78-1.74 0-3.15 1.44-3.15 3.21S5.26 14.21 7 14.21c2.01 0 2.84-1.44 2.92-2.21H7v-1.57h4.68c.07.31.12.61.12 1.02C11.8 13.97 9.89 16 7 16zm6.17-5.42h3.7c-.43 1.25-1.11 2.43-2.05 3.47-.31-.35-.6-.72-.86-1.1l-.79-2.37zm8.33 9.92c0 .55-.45 1-1 1H14l2-2.5-1.04-3.1 3.1 3.1.92-.92-3.3-3.25.02-.02c1.13-1.25 1.93-2.69 2.4-4.22H20v-1.3h-4.53V8h-1.29v1.29h-1.44L11.46 5.5h9.04c.55 0 1 .45 1 1v14z",
+    delete: "M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z",
+    info: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z",
+    settings: "M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z",
+    levelUp: "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z",
+    toggleDown: "M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"
+  };
+
+  // Create SVG icon helper function
+  function createSvgIcon(name, size = 18, additionalClasses = '') {
+    return `<svg class="icon-base ${additionalClasses}" viewBox="0 0 24 24" width="${size}" height="${size}">
+      <path fill="currentColor" d="${ICON_PATHS[name]}"/>
+    </svg>`;
+  }
+
   // Tab switching functionality
   const tabs = document.querySelectorAll('.tab');
   const tabContents = document.querySelectorAll('.tab-content');
@@ -48,9 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const checkIcon = level < 5 ? `
       <span class="level-up-icon" title="Level up" data-level="${level}">
-        <svg viewBox="0 0 24 24" width="16" height="16">
-          <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-        </svg>
+        ${createSvgIcon('levelUp', 16)}
       </span>
     ` : '';
 
@@ -122,23 +138,17 @@ document.addEventListener('DOMContentLoaded', () => {
         ${isLearningTab ? createLevelBadge(wordObj.level || 1) : `<span class="level-badge level-${wordObj.level || 1}" data-level="${wordObj.level || 1}">${wordObj.level || 1}</span>`}
       </span>
       <div class="word-actions">
-        <span class="sound-icon" title="Play Sound" data-word="${wordObj.word}">
-          <svg viewBox="0 0 24 24" width="18" height="18">
-            <path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-          </svg>
+        <span class="icon-wrapper sound-icon" title="Play Sound" data-word="${wordObj.word}">
+          ${createSvgIcon('sound')}
         </span>
         <a href="https://translate.google.com/?sl=auto&tl=tr&text=${encodeURIComponent(wordObj.word)}&op=translate" 
            target="_blank" 
            title="Google Translate" 
-           class="translate-icon">
-          <svg viewBox="0 0 24 24" width="18" height="18">
-            <path fill="currentColor" d="M21 4H11l-1-3H3c-1.1 0-2 .9-2 2v15c0 1.1.9 2 2 2h8l1 3h9c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM7 16c-2.76 0-5-2.24-5-5s2.24-5 5-5c1.35 0 2.48.5 3.35 1.3L9.03 8.57c-.38-.36-1.04-.78-2.03-.78-1.74 0-3.15 1.44-3.15 3.21S5.26 14.21 7 14.21c2.01 0 2.84-1.44 2.92-2.21H7v-1.57h4.68c.07.31.12.61.12 1.02C11.8 13.97 9.89 16 7 16zm6.17-5.42h3.7c-.43 1.25-1.11 2.43-2.05 3.47-.31-.35-.6-.72-.86-1.1l-.79-2.37zm8.33 9.92c0 .55-.45 1-1 1H14l2-2.5-1.04-3.1 3.1 3.1.92-.92-3.3-3.25.02-.02c1.13-1.25 1.93-2.69 2.4-4.22H20v-1.3h-4.53V8h-1.29v1.29h-1.44L11.46 5.5h9.04c.55 0 1 .45 1 1v14z"/>
-          </svg>
+           class="icon-wrapper translate-icon">
+          ${createSvgIcon('translate')}
         </a>
-        <span class="delete-icon" title="Delete" data-word="${wordObj.word}">
-          <svg viewBox="0 0 24 24" width="18" height="18">
-            <path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-          </svg>
+        <span class="icon-wrapper delete-icon" title="Delete" data-word="${wordObj.word}">
+          ${createSvgIcon('delete')}
         </span>
       </div>
     `;
@@ -247,9 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="date-word-count">(${wordCount} word${wordCount !== 1 ? 's' : ''})</span>
           </div>
           <span class="toggle-icon">
-            <svg viewBox="0 0 24 24" width="16" height="16">
-              <path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
-            </svg>
+            ${createSvgIcon('toggleDown', 16)}
           </span>
         `;
 
@@ -309,9 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="date-word-count">(${levelWords.length} word${levelWords.length !== 1 ? 's' : ''})</span>
             </div>
             <span class="toggle-icon">
-              <svg viewBox="0 0 24 24" width="16" height="16">
-                <path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
-              </svg>
+              ${createSvgIcon('toggleDown', 16)}
             </span>
           `;
 
@@ -587,27 +593,38 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Info panel functionality
-  document.querySelector('.icon-wrapper:has(.info-icon)').addEventListener('click', () => {
+  const infoIconWrapper = document.querySelector('.header-actions .icon-wrapper:first-child');
+  infoIconWrapper.addEventListener('click', () => {
+    settingsPanel.classList.remove('show');
     infoPanel.classList.toggle('show');
   });
 
   // Settings panel functionality
-  document.querySelector('.icon-wrapper:has(.settings-icon)').addEventListener('click', () => {
-    // Close info panel if it's open
+  const settingsIconWrapper = document.querySelector('.header-actions .icon-wrapper:nth-child(2)');
+  settingsIconWrapper.addEventListener('click', () => {
     infoPanel.classList.remove('show');
     settingsPanel.classList.toggle('show');
   });
 
+  // Close button functionality
+  settingsCloseBtn.addEventListener('click', () => {
+    settingsPanel.classList.remove('show');
+  });
+
+  closeBtn.addEventListener('click', () => {
+    infoPanel.classList.remove('show');
+  });
+
   // Close panels when clicking outside
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.icon-wrapper') && 
+    if (!e.target.closest('.header-actions .icon-wrapper:first-child') && 
+        !e.target.closest('.info-panel')) {
+      infoPanel.classList.remove('show');
+    }
+    if (!e.target.closest('.header-actions .icon-wrapper:nth-child(2)') && 
         !e.target.closest('.settings-panel') && 
         !e.target.closest('#exportDropdown')) {
       settingsPanel.classList.remove('show');
-    }
-    if (!e.target.closest('.icon-wrapper') && 
-        !e.target.closest('.info-panel')) {
-      infoPanel.classList.remove('show');
     }
   });
 

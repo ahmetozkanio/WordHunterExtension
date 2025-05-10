@@ -204,7 +204,7 @@ h2.header {
 .word-actions {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 6px;
     opacity: 0;
     transition: opacity 0.2s ease;
 }
@@ -316,38 +316,40 @@ h2.header {
     display: none;
     position: absolute;
     right: 0;
-    bottom: 100%;
-    margin-bottom: 5px;
+    top: 100%;
+    margin-top: 4px;
     background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 1;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    min-width: 120px;
+    overflow: hidden;
 }
 
 .dropdown-content button {
     width: 100%;
-    padding: 8px 16px;
+    padding: 10px 16px;
     background: none;
     border: none;
     text-align: left;
     cursor: pointer;
-    color: #333;
+    color: var(--neutral-600);
     font-size: 14px;
+    font-weight: 500;
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .dropdown-content button:hover {
-    background-color: #f8f9fa;
-    color: #4CAF50;
+    background-color: var(--neutral-50);
+    color: var(--primary);
 }
 
-.dropdown-content button:first-child {
-    border-radius: 6px 6px 0 0;
-}
-
-.dropdown-content button:last-child {
-    border-radius: 0 0 6px 6px;
+.dropdown-content button:not(:last-child) {
+    border-bottom: 1px solid var(--neutral-100);
 }
 
 .show {
@@ -881,33 +883,52 @@ h2.header {
 }
 
 .settings-option {
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
+    position: relative;
+    margin-bottom: 8px;
 }
 
 .settings-option:last-child {
-    border-bottom: none;
+    margin-bottom: 0;
 }
 
 .settings-btn {
     display: flex;
     align-items: center;
-    padding: var(--space-3);
+    padding: var(--space-3) var(--space-4);
     width: 100%;
-    background: none;
+    background-color: white;
     border: 1px solid var(--neutral-200);
     border-radius: var(--radius-md);
-    color: var(--neutral-700);
+    color: var(--neutral-600);
     transition: all 0.2s ease;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 14px;
+    font-weight: 500;
     text-align: left;
     gap: 8px;
+    box-shadow: var(--shadow-sm);
+    height: 40px;
+    margin-bottom: 4px;
 }
 
 .settings-btn:hover {
-    background-color: var(--neutral-100);
+    background-color: var(--neutral-50);
     border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.settings-btn .icon-wrapper {
+    margin-left: auto;
+    padding: 4px;
+    border-radius: 50%;
+    background-color: var(--neutral-100);
+    color: var(--neutral-500);
+}
+
+.settings-btn:hover .icon-wrapper {
+    background-color: color-mix(in srgb, var(--primary) 10%, white);
     color: var(--primary);
 }
 
@@ -920,11 +941,8 @@ h2.header {
     padding: 3px;
     box-sizing: border-box;
     pointer-events: auto;
-    /* Ensure clicks are detected */
-    width: 28px;
-    /* Increase clickable area */
-    height: 28px;
-    /* Increase clickable area */
+    width: 18px; 
+    height: 18px; 
 }
 
 .action-icon:hover {
@@ -948,12 +966,81 @@ h2.header {
 
 /* Add wrapper for better click handling */
 .icon-wrapper {
+    --icon-size: 18px;
+    --icon-size-sm: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 4px;
     border-radius: 4px;
     cursor: pointer;
+    color: var(--neutral-500);
+    transition: all 0.2s ease;
+}
+
+.header-actions .icon-wrapper {
+    padding: 6px;
+}
+
+.header-actions .icon-wrapper:hover {
+    background-color: var(--neutral-100);
+    color: var(--primary);
+}
+
+.word-actions .icon-wrapper {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    padding: 5px;
+}
+
+.word-actions .sound-icon {
+    color: var(--neutral-500);
+}
+
+.word-actions .sound-icon:hover {
+    background-color: color-mix(in srgb, var(--info) 10%, white);
+    color: var(--info);
+}
+
+.word-actions .translate-icon {
+    color: var(--neutral-500);
+    text-decoration: none;
+}
+
+.word-actions .translate-icon:hover {
+    background-color: color-mix(in srgb, var(--primary) 10%, white);
+    color: var(--primary);
+}
+
+.word-actions .delete-icon:hover {
+    background-color: color-mix(in srgb, var(--danger) 10%, white);
+    color: var(--danger);
+}
+
+.level-up-icon {
+    --icon-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 4px;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.level-up-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.toggle-icon {
+    --icon-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .header-actions {
@@ -1016,4 +1103,89 @@ h2.header {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* Icon styles */
+.icon-base {
+    --icon-size: 18px;
+    --icon-size-sm: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neutral-500);
+    transition: all 0.2s ease;
+}
+
+.icon-base svg {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    fill: currentColor;
+}
+
+.icon-base.icon-sm svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+}
+
+/* Header icons */
+.action-icon {
+    composes: icon-base;
+    border-radius: var(--radius-sm);
+    padding: 3px;
+    cursor: pointer;
+}
+
+.action-icon:hover {
+    color: var(--primary);
+    background-color: var(--neutral-100);
+}
+
+/* Word action icons */
+.word-actions .action-wrapper {
+    composes: icon-base;
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.word-actions .sound-icon:hover {
+    background-color: color-mix(in srgb, var(--info) 10%, white);
+    color: var (--info);
+}
+
+.word-actions .translate-icon:hover {
+    background-color: color-mix(in srgb, var(--primary) 10%, white);
+    color: var(--primary);
+}
+
+.word-actions .delete-icon:hover {
+    background-color: color-mix(in srgb, var(--danger) 10%, white);
+    color: var(--danger);
+}
+
+/* Toggle icon */
+.toggle-icon {
+    composes: icon-base;
+    width: 24px;
+    height: 24px;
+    margin-left: auto;
+    color: inherit;
+    transform: rotate(0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
+}
+
+/* Level up icon */
+.level-up-icon {
+    composes: icon-base;
+    width: 14px;
+    height: 14px;
+    margin-left: 4px;
+    opacity: 0.7;
+}
+
+.level-up-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
 }
