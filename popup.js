@@ -122,11 +122,24 @@ document.addEventListener('DOMContentLoaded', () => {
         ${isLearningTab ? createLevelBadge(wordObj.level || 1) : `<span class="level-badge level-${wordObj.level || 1}" data-level="${wordObj.level || 1}">${wordObj.level || 1}</span>`}
       </span>
       <div class="word-actions">
-        <span class="sound-icon" title="Play Sound" data-word="${wordObj.word}">🎧</span>
-        <a href="https://translate.google.com/?sl=auto&tl=tr&text=${encodeURIComponent(wordObj.word)}&op=translate" target="_blank" title="Google Translate">
-          <img src="images/google-translate-icon.png" alt="Google Translate" class="icon">
+        <span class="sound-icon" title="Play Sound" data-word="${wordObj.word}">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>
+        </span>
+        <a href="https://translate.google.com/?sl=auto&tl=tr&text=${encodeURIComponent(wordObj.word)}&op=translate" 
+           target="_blank" 
+           title="Google Translate" 
+           class="translate-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path fill="currentColor" d="M21 4H11l-1-3H3c-1.1 0-2 .9-2 2v15c0 1.1.9 2 2 2h8l1 3h9c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM7 16c-2.76 0-5-2.24-5-5s2.24-5 5-5c1.35 0 2.48.5 3.35 1.3L9.03 8.57c-.38-.36-1.04-.78-2.03-.78-1.74 0-3.15 1.44-3.15 3.21S5.26 14.21 7 14.21c2.01 0 2.84-1.44 2.92-2.21H7v-1.57h4.68c.07.31.12.61.12 1.02C11.8 13.97 9.89 16 7 16zm6.17-5.42h3.7c-.43 1.25-1.11 2.43-2.05 3.47-.31-.35-.6-.72-.86-1.1l-.79-2.37zm8.33 9.92c0 .55-.45 1-1 1H14l2-2.5-1.04-3.1 3.1 3.1.92-.92-3.3-3.25.02-.02c1.13-1.25 1.93-2.69 2.4-4.22H20v-1.3h-4.53V8h-1.29v1.29h-1.44L11.46 5.5h9.04c.55 0 1 .45 1 1v14z"/>
+          </svg>
         </a>
-        <span class="delete-icon" title="Delete" data-word="${wordObj.word}">❌</span>
+        <span class="delete-icon" title="Delete" data-word="${wordObj.word}">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+          </svg>
+        </span>
       </div>
     `;
 

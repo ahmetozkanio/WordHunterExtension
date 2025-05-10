@@ -60,7 +60,7 @@ body {
 }
 
 .word-item {
-    padding: var(--space-3);
+    padding: var(--space-2);
     border-bottom: 1px solid var(--neutral-200);
     display: flex;
     justify-content: space-between;
@@ -137,14 +137,12 @@ h2 {
 
 .github-icon {
     width: 22px;
-    /* Aynı boyut diğer ikonlarla */
     height: 22px;
     display: block;
     transition: opacity 0.2s ease;
     padding: 3px;
     box-sizing: border-box;
     opacity: 0.7;
-    /* Başlangıç opaklığı */
 }
 
 .github-link {
@@ -197,7 +195,6 @@ h2.header {
     font-size: 10px;
     opacity: 0.5;
     transition: opacity 0.2s;
-    margin-left: 10px;
 }
 
 .delete-icon:hover {
@@ -207,14 +204,48 @@ h2.header {
 .word-actions {
     display: flex;
     align-items: center;
-    gap: 5px;
-    /* Adding spacing between action items */
+    gap: 2px;
     opacity: 0;
     transition: opacity 0.2s ease;
 }
 
 .word-item:hover .word-actions {
     opacity: 1;
+}
+
+.word-actions .sound-icon,
+.word-actions .translate-icon,
+.word-actions .delete-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--neutral-500);
+}
+
+.word-actions .sound-icon:hover {
+    background-color: color-mix(in srgb, var(--info) 10%, white);
+    color: var(--info);
+}
+
+.word-actions .translate-icon {
+    color: var(--neutral-500);
+    text-decoration: none;
+}
+
+.word-actions .translate-icon:hover {
+    background-color: color-mix(in srgb, var(--primary) 10%, white);
+    color: var(--primary);
+}
+
+.word-actions .delete-icon:hover {
+    background-color: color-mix(in srgb, var(--danger) 10%, white);
+    color: var(--danger);
 }
 
 .word-actions img.icon {
@@ -346,7 +377,7 @@ h2.header {
     border: 1px solid var(--neutral-200);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    margin-bottom: var(--space-3);
+    margin-bottom: var(--space-2);  /* var(--space-3)'den var(--space-2)'ye düşürüldü */
     background-color: white;
     transition: all 0.2s ease;
 }
