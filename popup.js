@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportJsonBtn = document.getElementById('exportJsonBtn');
   const exportTxtBtn = document.getElementById('exportTxtBtn');
   const importBtn = document.getElementById('importBtn');
+  const copyWordsBtn = document.getElementById('copyWordsBtn');
+  const copyWordsText = document.getElementById('copyWordsText');
   const fileInput = document.getElementById('fileInput');
   const settingsIcon = document.querySelector('.settings-icon');
   const settingsPanel = document.querySelector('.settings-panel');
@@ -478,6 +480,35 @@ document.addEventListener('DOMContentLoaded', () => {
       link.href = URL.createObjectURL(blob);
       link.download = 'wordhunter.txt';
       link.click();
+    });
+  });
+
+  // Copy Words functionality
+  copyWordsBtn.addEventListener('click', () => {
+    chrome.storage.local.get(['words'], result => {
+      const words = result.words || [];
+      if (words.length === 0) return;
+  
+      const textToCopy = words.map(word => word.word).join('\n');
+      const originalText = copyWordsText.textContent;
+
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => {
+          copyWordsText.textContent = '✅ Copied!';
+          copyWordsBtn.disabled = true;
+  
+          setTimeout(() => {
+            copyWordsText.textContent = originalText;
+            copyWordsBtn.disabled = false;
+          }, 3000);
+        })
+        .catch(err => {
+          console.error('Failed to copy: ', err);
+          copyWordsText.textContent = '❌ Failed';
+          setTimeout(() => {
+            copyWordsText.textContent = originalText;
+          }, 3000);
+        });
     });
   });
 
