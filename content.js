@@ -53,7 +53,13 @@ document.addEventListener('mouseup', (e) => {
 
 floatingButton.addEventListener('click', () => {
   const selectedText = window.getSelection().toString().trim();
+  saveWord(selectedText);
+});
+
+function saveWord(selectedText) {
   if (selectedText && chrome && chrome.storage && chrome.storage.local) {
+    const selectedText = selectionText.trim();
+ 
     chrome.storage.local.get(['words'], result => {
       const words = result.words || [];
       
@@ -93,7 +99,7 @@ floatingButton.addEventListener('click', () => {
       });
     });
   }
-});
+}
 
 // Create feedback element
 const feedback = document.createElement('div');
@@ -154,4 +160,21 @@ document.addEventListener('selectionchange', () => {
   if (!selectedText) {
     floatingButton.style.display = 'none';
   }
+});
+
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "save-word") {
+    saveWords(message.text);
+    console.log(`Received message: ${message.text}`);
+  }
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log("Alınan mesaj:", message);  
+  if (message.action === "save-word") {
+    saveWords(message.text);
+    sendResponse({success: true}); 
+  }
+  return true;  
 });
