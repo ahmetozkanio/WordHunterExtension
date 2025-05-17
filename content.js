@@ -58,7 +58,7 @@ floatingButton.addEventListener('click', () => {
 
 function saveWord(selectedText) {
   if (selectedText && chrome && chrome.storage && chrome.storage.local) {
-    const selectedText = selectionText.trim();
+    selectedText = selectedText.trim();
  
     chrome.storage.local.get(['words'], result => {
       const words = result.words || [];
