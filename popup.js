@@ -32,8 +32,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await checkMissedReviews();
     
     // Ensure default tab is set and visible
-    const defaultTab = document.querySelector('.tab[data-tab="repeatition"]');
-    const defaultContent = document.getElementById('repeatition');
+    const defaultTab = document.querySelector('.tab[data-tab="repetition"]');
+    const defaultContent = document.getElementById('repetition');
     
     if (defaultTab && defaultContent) {
       // Remove active class from all tabs and contents
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       defaultContent.classList.add('active');
       
       // Load initial content
-      loadSpacedRepeatition();
+      loadSpacedRepetition();
     } else {
       console.error('Default tab or content not found');
     }
@@ -90,8 +90,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       // Load appropriate content
       switch (tab.dataset.tab) {
-        case 'repeatition':
-          loadSpacedRepeatition();
+        case 'repetition':
+          loadSpacedRepetition();
           break;
         case 'learning':
           loadLearningProgress();
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function createWordItem(wordObj) {
     const activeTab = document.querySelector('.tab.active');
-    const isLearningTab = activeTab.dataset.tab === 'learning' || activeTab.dataset.tab === 'repeatition';
+    const isLearningTab = activeTab.dataset.tab === 'learning' || activeTab.dataset.tab === 'repetition';
 
     const wordItem = document.createElement('div');
     wordItem.className = 'word-item';
@@ -463,7 +463,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Reload all views to keep them in sync
         loadWords();
         loadLearningProgress();
-        loadSpacedRepeatition();
+        loadSpacedRepetition();
       });
     });
   }
@@ -504,7 +504,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               // Reload all views to keep them in sync
               loadWords();
               loadLearningProgress();
-              loadSpacedRepeatition();
+              loadSpacedRepetition();
             });
           }
         });
@@ -923,7 +923,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Reload all views
             loadWords();
             loadLearningProgress();
-            loadSpacedRepeatition();
+            loadSpacedRepetition();
           }
         });
       }
@@ -969,17 +969,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function loadSpacedRepeatition() {
+  function loadSpacedRepetition() {
     chrome.storage.local.get(['words'], result => {
       const words = result.words || [];
-      const repeatitionList = document.getElementById('repeatitionList');
+      const repetitionList = document.getElementById('repetitionList');
       
-      if (!repeatitionList) {
-        console.error('repeatitionList element not found');
+      if (!repetitionList) {
+        console.error('repetitionList element not found');
         return;
       }
       
-      repeatitionList.innerHTML = '';
+      repetitionList.innerHTML = '';
 
       // Get today's date at midnight for accurate comparison
       const todayUTC = DateUtils.getTodayUTC();
@@ -1043,7 +1043,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Create sections for each group
       if (groupedWords.today && groupedWords.today.length > 0) {
         const todaySection = createReviewSection('Today\'s Reviews', groupedWords.today);
-        repeatitionList.appendChild(todaySection);
+        repetitionList.appendChild(todaySection);
       }
 
       // Create sections for future reviews
@@ -1065,14 +1065,14 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
           
           const futureSection = createReviewSection(sectionTitle, words);
-          repeatitionList.appendChild(futureSection);
+          repetitionList.appendChild(futureSection);
         });
       }
 
       // Create section for not started words
       if (groupedWords.notStarted && groupedWords.notStarted.length > 0) {
         const notStartedSection = createReviewSection('Not Started', groupedWords.notStarted);
-        repeatitionList.appendChild(notStartedSection);
+        repetitionList.appendChild(notStartedSection);
       }
     });
   }
@@ -1254,8 +1254,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       // UI'ı güncelle
       const activeTab = document.querySelector('.tab.active');
-      if (activeTab.dataset.tab === 'repeatition') {
-        loadSpacedRepeatition();
+      if (activeTab.dataset.tab === 'repetition') {
+        loadSpacedRepetition();
       } else if (activeTab.dataset.tab === 'learning') {
         loadLearningProgress();
       } else {
