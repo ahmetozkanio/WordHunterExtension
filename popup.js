@@ -61,7 +61,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     info: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z",
     settings: "M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z",
     levelUp: "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z",
-    toggleDown: "M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"
+    toggleDown: "M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z",
+    copy: "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
   };
 
   // Create SVG icon helper function
@@ -1094,15 +1095,45 @@ document.addEventListener('DOMContentLoaded', async () => {
       header.classList.add('success');
     }
     
+    // Add copy icon for Today's Reviews
+    const copyIcon = title === 'Today\'s Reviews' ? `
+      <span class="copy-icon" title="Copy all words">
+        ${createSvgIcon('copy', 16)}
+      </span>
+    ` : '';
+    
     header.innerHTML = `
       <div class="date-info">
         <span class="section-title">${title}</span>
         <span class="date-word-count">(${words.length} word${words.length !== 1 ? 's' : ''})</span>
       </div>
-      <span class="toggle-icon">
-        ${createSvgIcon('toggleDown', 16)}
-      </span>
+      <div class="header-actions">
+        ${copyIcon}
+        <span class="toggle-icon">
+          ${createSvgIcon('toggleDown', 16)}
+        </span>
+      </div>
     `;
+
+    // Add copy functionality for Today's Reviews
+    if (title === 'Today\'s Reviews') {
+      const copyButton = header.querySelector('.copy-icon');
+      copyButton.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent section collapse
+        const wordsToCopy = words.map(word => word.word).join('\n');
+        navigator.clipboard.writeText(wordsToCopy)
+          .then(() => {
+            // Show success feedback
+            copyButton.classList.add('copied');
+            setTimeout(() => {
+              copyButton.classList.remove('copied');
+            }, 2000);
+          })
+          .catch(err => {
+            console.error('Failed to copy words:', err);
+          });
+      });
+    }
 
     const wordContainer = document.createElement('div');
     wordContainer.className = 'word-container';
