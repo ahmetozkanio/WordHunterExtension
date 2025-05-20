@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Level to interval mapping for spaced repetition
   const LEVEL_STYLES = {
     0: {
-      tooltip: "Not studied yet - Word is not in the learning system",
+      tooltip: "Not studied yet - Word is not in the learning system. Click 'Review' to start learning this word.",
       reviewInterval: 0, // No review needed
       nextLevelThreshold: 1 // Move to level 1 after first review
     },
@@ -714,11 +714,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Function to generate level info list
+  function generateLevelInfoList() {
+    const infoPanel = document.querySelector('.info-panel');
+    const levelInfoContainer = infoPanel.querySelector('.level-info-container');
+    
+    // Clear existing level info items
+    levelInfoContainer.innerHTML = '';
+    
+    // Generate level info items
+    Object.entries(LEVEL_STYLES).forEach(([level, style]) => {
+      const levelInfo = document.createElement('div');
+      levelInfo.className = 'level-info';
+      levelInfo.innerHTML = `
+        <span class="level-indicator level-${level}">Level ${level}</span>
+        <span class="level-description">${style.tooltip}</span>
+      `;
+      levelInfoContainer.appendChild(levelInfo);
+    });
+  }
+
   // Info panel functionality
   const infoIconWrapper = document.querySelector('.header-actions .icon-wrapper:first-child');
   infoIconWrapper.addEventListener('click', () => {
     settingsPanel.classList.remove('show');
     infoPanel.classList.toggle('show');
+    if (infoPanel.classList.contains('show')) {
+      generateLevelInfoList();
+    }
   });
 
   // Settings panel functionality
