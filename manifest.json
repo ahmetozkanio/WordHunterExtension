@@ -9,7 +9,11 @@
     "scripting",
     "contextMenus",
     "tabs",
-    "notifications"
+    "notifications",
+    "alarms"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "icons": {
     "128": "images/icon128.png"
@@ -22,7 +26,8 @@
     "default_title": "📚 WordHunter"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "content_scripts": [
     {
@@ -32,6 +37,12 @@
       "js": [
         "content.js"
       ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["sounds/*"],
+      "matches": ["<all_urls>"]
     }
   ]
 }

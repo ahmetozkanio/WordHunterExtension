@@ -17,7 +17,15 @@
     --neutral-500: #64748b;
     --neutral-600: #475569;
     --neutral-700: #334155;
-    
+
+    --level-0: #666666;
+    --level-1: #F44336;
+    --level-2: #FF9800; 
+    --level-3: #8e4caf; 
+    --level-4: #0787ff; 
+    --level-5: #4cafac; 
+    --level-6: #38a93b; 
+
     /* Typography */
     --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     
@@ -42,7 +50,7 @@
 
 body {
     width: 400px !important;
-    min-height: 300px;
+    min-height: 400px;
     padding: var(--space-4);
     font-family: var(--font-sans);
     border: 1px solid var(--neutral-200);
@@ -53,7 +61,7 @@ body {
 }
 
 .word-list {
-    max-height: 400px;
+    max-height: max-content;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--neutral-300) var(--neutral-100);
@@ -84,6 +92,7 @@ body {
     cursor: text;
     color: var(--neutral-700);
     position: relative;
+    gap: 4px;
 }
 
 .word-date {
@@ -424,99 +433,6 @@ h2.header {
     color: var(--primary);
 }
 
-/* Level header colors */
-.date-header.level-1 {
-    background-color: #ffebee;
-    color: #d32f2f;
-}
-
-.date-header.level-2 {
-    background-color: #fff3e0;
-    color: #f57c00;
-}
-
-.date-header.level-3 {
-    background-color: #e3f2fd;
-    color: #1976d2;
-}
-
-.date-header.level-4 {
-    background-color: #ebf5ff;
-    color: #3b82f6;
-}
-
-.date-header.level-5 {
-    background-color: #e8f5e9;
-    color: #388e3c;
-}
-
-/* Level header hover effects */
-.date-header.level-1:hover {
-    background-color: #ffcdd2;
-}
-
-.date-header.level-2:hover {
-    background-color: #ffe0b2;
-}
-
-.date-header.level-3:hover {
-    background-color: #bbdefb;
-}
-
-.date-header.level-4:hover {
-    background-color: #dceeff;
-}
-
-.date-header.level-5:hover {
-    background-color: #c8e6c9;
-}
-
-/* Override toggle icon color for each level */
-.date-header.level-1 .toggle-icon {
-    color: #d32f2f;
-}
-
-.date-header.level-2 .toggle-icon {
-    color: #f57c00;
-}
-
-.date-header.level-3 .toggle-icon {
-    color: #1976d2;
-}
-
-.date-header.level-4 .toggle-icon {
-    color: #3b82f6;
-}
-
-.date-header.level-5 .toggle-icon {
-    color: #388e3c;
-}
-
-/* Override word count color for each level */
-.date-header.level-1 .date-word-count {
-    color: #d32f2f;
-    opacity: 0.8;
-}
-
-.date-header.level-2 .date-word-count {
-    color: #f57c00;
-    opacity: 0.8;
-}
-
-.date-header.level-3 .date-word-count {
-    color: #1976d2;
-    opacity: 0.8;
-}
-
-.date-header.level-4 .date-word-count {
-    color: #3b82f6;
-    opacity: 0.8;
-}
-
-.date-header.level-5 .date-word-count {
-    color: #388e3c;
-    opacity: 0.8;
-}
 
 .date-header:hover {
     background-color: #f1f1f1;
@@ -546,7 +462,7 @@ h2.header {
 
 .word-container {
     transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    max-height: 1000px;
+    max-height: max-content;
     overflow: hidden;
     animation: fadeIn 0.3s ease;
 }
@@ -579,7 +495,7 @@ h2.header {
     border: none;
     background: none;
     color: var(--neutral-600);
-    font-size: 0.875rem;
+    font-size: 0.695rem;
     font-weight: 500;
     transition: all 0.2s ease;
     border-radius: var(--radius-md);
@@ -705,65 +621,69 @@ h2.header {
     transform: scale(1.15);
 }
 
-/* Level options background colors */
-.level-option.level-1 { background-color: color-mix(in srgb, var(--danger) 10%, white); }
-.level-option.level-2 { background-color: color-mix(in srgb, var(--warning) 10%, white); }
-.level-option.level-3 { background-color: color-mix(in srgb, var(--info) 10%, white); }
-.level-option.level-4 { background-color: color-mix(in srgb, var(--primary) 10%, white); }
-.level-option.level-5 { background-color: color-mix(in srgb, var(--success) 10%, white); }
-
-/* Level options hover colors */
-.level-option.level-1:not(.current):hover { background-color: color-mix(in srgb, var(--danger) 20%, white); }
-.level-option.level-2:not(.current):hover { background-color: color-mix(in srgb, var(--warning) 20%, white); }
-.level-option.level-3:not(.current):hover { background-color: color-mix(in srgb, var(--info) 20%, white); }
-.level-option.level-4:not(.current):hover { background-color: color-mix(in srgb, var(--primary) 20%, white); }
-.level-option.level-5:not(.current):hover { background-color: color-mix(in srgb, var(--success) 20%, white); }
-
 /* Level colors - organized by learning progress */
+.level-0 {
+    background-color: color-mix(in srgb, var(--level-0) 10%, white);
+    color: var(--level-0);
+}
+
 .level-1 {
-    background-color: color-mix(in srgb, var(--danger) 10%, white);
-    color: var(--danger);
+    background-color: color-mix(in srgb, var(--level-1) 10%, white);
+    color: var(--level-1);
 }
 
 .level-2 {
-    background-color: color-mix(in srgb, var(--warning) 10%, white);
-    color: var(--warning);
+    background-color: color-mix(in srgb, var(--level-2) 10%, white);
+    color: var(--level-2);
 }
 
 .level-3 {
-    background-color: color-mix(in srgb, var(--info) 10%, white);
-    color: var(--info);
+    background-color: color-mix(in srgb, var(--level-3) 10%, white);
+    color: var(--level-3);
 }
 
 .level-4 {
-    background-color: color-mix(in srgb, #3b82f6 10%, white);
-    color: #3b82f6;
+    background-color: color-mix(in srgb, var(--level-4) 10%, white);
+    color: var(--level-4);
 }
 
 .level-5 {
-    background-color: color-mix(in srgb, var(--success) 10%, white);
-    color: var(--success);
+    background-color: color-mix(in srgb, var(--level-5) 10%, white);
+    color: var(--level-5);
+}
+
+.level-6 {
+    background-color: color-mix(in srgb, var(--level-6) 10%, white);
+    color: var(--level-6);
 }
 
 /* Hover effects for level badges */
+.level-0:hover {
+    background-color: color-mix(in srgb, var(--level-0) 20%, white);
+}
+
 .level-1:hover {
-    background-color: color-mix(in srgb, var(--danger) 20%, white);
+    background-color: color-mix(in srgb, var(--level-1) 20%, white);
 }
 
 .level-2:hover {
-    background-color: color-mix(in srgb, var(--warning) 20%, white);
+    background-color: color-mix(in srgb, var(--level-2) 20%, white);
 }
 
 .level-3:hover {
-    background-color: color-mix(in srgb, var(--info) 20%, white);
+    background-color: color-mix(in srgb, var(--level-3) 20%, white);
 }
 
 .level-4:hover {
-    background-color: color-mix(in srgb, #3b82f6 20%, white);
+    background-color: color-mix(in srgb, var(--level-4) 20%, white);
 }
 
 .level-5:hover {
-    background-color: color-mix(in srgb, var(--success) 20%, white);
+    background-color: color-mix(in srgb, var(--level-5) 20%, white);
+}
+
+.level-6:hover {
+    background-color: color-mix(in srgb, var(--level-6) 20%, white);
 }
 
 /* Tooltip styling */
@@ -1146,7 +1066,6 @@ h2.header {
 
 /* Header icons */
 .action-icon {
-    composes: icon-base;
     border-radius: var(--radius-sm);
     padding: 3px;
     cursor: pointer;
@@ -1159,7 +1078,6 @@ h2.header {
 
 /* Word action icons */
 .word-actions .action-wrapper {
-    composes: icon-base;
     width: 24px;
     height: 24px;
     padding: 4px;
@@ -1184,7 +1102,6 @@ h2.header {
 
 /* Toggle icon */
 .toggle-icon {
-    composes: icon-base;
     width: 24px;
     height: 24px;
     margin-left: auto;
@@ -1195,7 +1112,6 @@ h2.header {
 
 /* Level up icon */
 .level-up-icon {
-    composes: icon-base;
     width: 14px;
     height: 14px;
     margin-left: 4px;
@@ -1205,4 +1121,143 @@ h2.header {
 .level-up-icon:hover {
     opacity: 1;
     transform: scale(1.1);
+}
+
+.review-button {
+    font-size: 9px;
+    padding: 2px 4px;
+    border-radius: 10px;
+    background-color: color-mix(in srgb, var(--primary) 15%, white);
+    color: var(--primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: 6px;
+    white-space: nowrap;
+    border: 1px solid color-mix(in srgb, var(--primary) 30%, white);
+    display: inline-flex;
+    align-items: center;
+    height: 16px;
+    font-weight: 500;
+}
+
+.review-button:hover {
+    background-color: color-mix(in srgb, var(--primary) 25%, white);
+    transform: scale(1.05);
+}
+
+.review-button.in-review {
+    background-color: color-mix(in srgb, var(--success) 15%, white);
+    color: var(--success);
+    border-color: color-mix(in srgb, var(--success) 30%, white);
+}
+
+.review-button.in-review:hover {
+    background-color: color-mix(in srgb, var(--success) 25%, white);
+}
+
+/* Update word-text to handle the new button position */
+.word-text {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    cursor: text;
+    color: var(--neutral-700);
+    position: relative;
+    gap: 4px;
+}
+
+/* Notification Settings Styles */
+.notification-settings {
+  padding: var(--space-3);
+  border-top: 1px solid var(--neutral-200);
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--space-3);
+  color: var(--neutral-700);
+  font-weight: 500;
+}
+
+.notification-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.toggle-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-label {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--neutral-300);
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.toggle-label:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.toggle-input:checked + .toggle-label {
+  background-color: var(--primary);
+}
+
+.toggle-input:checked + .toggle-label:before {
+  transform: translateX(20px);
+}
+
+/* Time Picker */
+.time-picker {
+  flex: 1;
+}
+
+.time-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--neutral-700);
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+.time-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 20%, white);
+}
+
+.time-input:disabled {
+  background-color: var(--neutral-100);
+  cursor: not-allowed;
+  opacity: 0.7;
 }

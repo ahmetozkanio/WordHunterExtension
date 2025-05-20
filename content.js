@@ -58,35 +58,43 @@ floatingButton.addEventListener('click', () => {
 
 function saveWord(selectedText) {
   if (selectedText && chrome && chrome.storage && chrome.storage.local) {
-    selectedText = selectedText.trim();
- 
-    chrome.storage.local.get(['words'], result => {
-      const words = result.words || [];
-      
-      // Check if word already exists
-      const existingWordIndex = words.findIndex(w => w.word === selectedText);
+    // Normalize the word by trimming and converting to lowercase
+    selectedText = selectedText.trim().toLowerCase();
+
+    chrome.storage.local.get(['words', 'settings'], result => {
+      // Ensure words is always an array
+      const words = Array.isArray(result.words) ? result.words : [];
+
+      // Check if word already exists (case-insensitive comparison)
+      const existingWordIndex = words.findIndex(w => w.word.toLowerCase() === selectedText.toLowerCase());
       if (existingWordIndex !== -1) {
         // Increment count if word exists
-        words[existingWordIndex].count = (words[existingWordIndex].count || 1) + 1;
-        words[existingWordIndex].date = new Date().toISOString(); // Update date
+        words[existingWordIndex].encounterCount = (words[existingWordIndex].encounterCount || 1) + 1;
         chrome.storage.local.set({ words }, () => {
           if (chrome.runtime.lastError) {
             showFeedback('Error updating word', 'error');
           } else {
-            showFeedback(`"${selectedText}" (${words[existingWordIndex].count})`, 'warning');
+            showFeedback(`"${selectedText}" (${words[existingWordIndex].encounterCount})`, 'warning');
           }
           floatingButton.style.display = 'none';
         });
         return;
       }
 
-      // Add new word with count and level
+      // Create new word entry with spaced repetition data
       const newWord = {
         word: selectedText,
-        date: new Date().toISOString(),
-        count: 1,
-        level: 1  // Default level is 1
+        meaning: "",
+        examples: [],
+        isInReview: false,
+        encounterCount: 1,
+        learningLevel: 0, // 0 = Not studied yet (inactive for repetition)
+        addedDate: new Date().toISOString(),
+        repetitionHistory: [], // Empty history until first study
+        nextReviewDate: null, // Will be set when user starts studying
       };
+
+      // Add the new word to storage
       words.push(newWord);
 
       chrome.storage.local.set({ words }, () => {
@@ -162,13 +170,6 @@ document.addEventListener('selectionchange', () => {
   }
 });
 
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "save-word") {
-    saveWords(message.text);
-    console.log(`Received message: ${message.text}`);
-  }
-});
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("Alınan mesaj:", message);  

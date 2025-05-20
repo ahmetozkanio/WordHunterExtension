@@ -25,16 +25,21 @@
     </div>
   </h2>
   <div class="tabs">
-    <button class="tab active" data-tab="learning">Learning Progress</button>
+    <button class="tab active" data-tab="repeatition">Spaced Repeatition</button>
+    <button class="tab" data-tab="learning">Learning Progress</button>
     <button class="tab" data-tab="all-words">All Words</button>
   </div>
   <div class="word-count" id="wordCount"></div>
+  <div class="tab-content" id="repeatition">
+    <div class="word-list" id="repeatitionList"></div>
+  </div>
+  <div class="tab-content" id="learning">
+    <div class="word-list" id="learningList"></div>
+  </div>
   <div class="tab-content" id="all-words">
     <div class="word-list" id="wordList"></div>
   </div>
-  <div class="tab-content active" id="learning">
-    <div class="word-list" id="learningList"></div>
-  </div>
+
   
   <!-- Settings Panel -->
   <div class="settings-panel">
@@ -91,6 +96,25 @@
         </button>
       </div>
     </div>
+
+    <!-- Notification Settings -->
+    <div class="settings-option notification-settings">
+      <div class="settings-header">
+        <svg class="icon-base" viewBox="0 0 24 24" width="18" height="18">
+          <path fill="currentColor" d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+        </svg>
+        <span>Notification Settings</span>
+      </div>
+      <div class="notification-controls">
+        <div class="toggle-switch">
+          <input type="checkbox" id="notificationToggle" class="toggle-input">
+          <label for="notificationToggle" class="toggle-label"></label>
+        </div>
+        <div class="time-picker">
+          <input type="time" id="notificationTime" class="time-input">
+        </div>
+      </div>
+    </div>
   </div>
   
   <!-- Info Panel -->
@@ -99,6 +123,10 @@
       Learning Levels
       <span class="close-btn">&times;</span>
     </h3>
+    <div class="level-info">
+      <span class="level-indicator level-0">Level 0</span>
+      <span class="level-description">Not studied yet - Word is not in the learning system</span>
+    </div>
     <div class="level-info">
       <span class="level-indicator level-1">Level 1</span>
       <span class="level-description">Newly learned - Just started learning this word</span>
@@ -113,10 +141,14 @@
     </div>
     <div class="level-info">
       <span class="level-indicator level-4">Level 4</span>
-      <span class="level-description"> Very well learned - Strong knowledge of the word</span>
+      <span class="level-description">Very well learned - Strong knowledge of the word</span>
     </div>
     <div class="level-info">
       <span class="level-indicator level-5">Level 5</span>
+      <span class="level-description">Almost mastered - Very strong knowledge of the word</span>
+    </div>
+    <div class="level-info">
+      <span class="level-indicator level-6">Level 6</span>
       <span class="level-description">Mastered - Complete mastery of the word</span>
     </div>
   </div>

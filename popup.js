@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // DOM element references
   const wordList = document.getElementById('wordList');
   const wordCount = document.getElementById('wordCount');
@@ -11,12 +11,47 @@ document.addEventListener('DOMContentLoaded', () => {
   const copyWordsBtn = document.getElementById('copyWordsBtn');
   const copyWordsText = document.getElementById('copyWordsText');
   const fileInput = document.getElementById('fileInput');
-  const settingsIcon = document.querySelector('.settings-icon');
   const settingsPanel = document.querySelector('.settings-panel');
   const settingsCloseBtn = document.querySelector('.settings-panel .close-btn');
-  const infoIcon = document.querySelector('.info-icon');
   const infoPanel = document.querySelector('.info-panel');
   const closeBtn = document.querySelector('.info-panel .close-btn');
+
+  // Notification Settings
+  const notificationToggle = document.getElementById('notificationToggle');
+  const notificationTime = document.getElementById('notificationTime');
+
+  // Initial setup and data loading
+  try {
+    // Load notification settings first
+    await loadNotificationSettings();
+    
+    // Run migration
+    await migrateOldData();
+    
+    // Check for missed reviews
+    await checkMissedReviews();
+    
+    // Ensure default tab is set and visible
+    const defaultTab = document.querySelector('.tab[data-tab="repeatition"]');
+    const defaultContent = document.getElementById('repeatition');
+    
+    if (defaultTab && defaultContent) {
+      // Remove active class from all tabs and contents
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      // Set default tab and content as active
+      defaultTab.classList.add('active');
+      defaultContent.classList.add('active');
+      
+      // Load initial content
+      loadSpacedRepeatition();
+    } else {
+      console.error('Default tab or content not found');
+    }
+  } catch (error) {
+    console.error('Error during initial setup:', error);
+  }
 
   // Icon paths
   const ICON_PATHS = {
@@ -42,102 +77,114 @@ document.addEventListener('DOMContentLoaded', () => {
   
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
+      // Remove active class from all tabs and contents
       tabs.forEach(t => t.classList.remove('active'));
       tabContents.forEach(content => content.classList.remove('active'));
       
+      // Add active class to clicked tab and its content
       tab.classList.add('active');
       const targetContent = document.getElementById(tab.dataset.tab);
-      targetContent.classList.add('active');
+      if (targetContent) {
+        targetContent.classList.add('active');
+      }
       
-      if (tab.dataset.tab === 'learning') {
-        loadLearningProgress();
-      } else {
-        loadWords();
+      // Load appropriate content
+      switch (tab.dataset.tab) {
+        case 'repeatition':
+          loadSpacedRepeatition();
+          break;
+        case 'learning':
+          loadLearningProgress();
+          break;
+        default:
+          loadWords();
       }
     });
   });
 
-  function createLevelBadge(level) {
-    const tooltips = {
-      1: "Newly learned - Just started learning this word",
-      2: "Learning in progress - Getting familiar with the word",
-      3: "Well learned - Good understanding of the word",
-      4: "Very well learned - Strong knowledge of the word",
-      5: "Mastered - Complete mastery of the word"
-    };
+  // Level to interval mapping for spaced repetition
+  const LEVEL_STYLES = {
+    0: {
+      tooltip: "Not studied yet - Word is not in the learning system",
+      reviewInterval: 0, // No review needed
+      nextLevelThreshold: 1 // Move to level 1 after first review
+    },
+    1: {
+      tooltip: "Newly learned - Review today",
+      reviewInterval: 0, // Review today
+      nextLevelThreshold: 1 // Need 1 successful review to move to level 2
+    },
+    2: {
+      tooltip: "Learning in progress - Review tomorrow",
+      reviewInterval: 1, // Review tomorrow
+      nextLevelThreshold: 1 // Need 1 successful review to move to level 3
+    },
+    3: {
+      tooltip: "Well learned - Review in 4 days",
+      reviewInterval: 4, // Review in 4 days
+      nextLevelThreshold: 1 // Need 1 successful review to move to level 4
+    },
+    4: {
+      tooltip: "Very well learned - Review in 7 days",
+      reviewInterval: 7, // Review in 1 week
+      nextLevelThreshold: 1 // Need 1 successful review to move to level 5
+    },
+    5: {
+      tooltip: "Almost mastered - Review in 14 days",
+      reviewInterval: 14, // Review in 2 weeks
+      nextLevelThreshold: 1 // Need 1 successful review to move to level 6
+    },
+    6: {
+      tooltip: "Mastered - Review in 30 days",
+      reviewInterval: 30, // Review in 1 month
+      nextLevelThreshold: 1 // Maximum level, no further progression
+    }
+  };
 
-    const checkIcon = level < 5 ? `
+  function createSimpleLevelBadge(level) {
+    const style = LEVEL_STYLES[level] || LEVEL_STYLES[0];
+    return `<span class="level-badge level-${level}" 
+      data-level="${level}" 
+      data-tooltip="${style.tooltip}"
+      style="color: ${style.color}; background-color: ${style.bgColor}; border-color: ${style.borderColor};">
+      ${level}
+    </span>`;
+  }
+
+  function createLevelBadge(level, isInReview = false) {
+    const style = LEVEL_STYLES[level] || LEVEL_STYLES[0];
+    const checkIcon = level < 6 ? `
       <span class="level-up-icon" title="Level up" data-level="${level}">
         ${createSvgIcon('levelUp', 16)}
       </span>
     ` : '';
 
-    return `<span class="level-badge level-${level}" data-level="${level}" data-tooltip="${tooltips[level]}">
+    // Show review button for level 0 words
+    const reviewButton = level === 0 ? `
+      <span class="review-button ${isInReview ? 'in-review' : ''}" title="${isInReview ? 'In Review' : 'Start Review'}">
+        ${isInReview ? 'In Review' : 'Review'}
+      </span>
+    ` : '';
+
+    return `<span class="level-badge level-${level}" 
+      data-level="${level}" 
+      data-tooltip="${style.tooltip}"
+      style="color: ${style.color}; background-color: ${style.bgColor}; border-color: ${style.borderColor};">
       ${level}${checkIcon}
-    </span>`;
-  }
-
-  function levelUp(word, currentLevel) {
-    if (currentLevel >= 5) return; // Maximum level kontrol
-    
-    const newLevel = currentLevel + 1;
-    chrome.storage.local.get(['words'], result => {
-      const words = result.words || [];
-      const wordIndex = words.findIndex(w => w.word === word);
-      
-      if (wordIndex !== -1) {
-        words[wordIndex].level = newLevel;
-        chrome.storage.local.set({ words }, () => {
-          const activeTab = document.querySelector('.tab.active');
-          if (activeTab.dataset.tab === 'learning') {
-            loadLearningProgress();
-          } else {
-            loadWords();
-          }
-        });
-      }
-    });
-  }
-
-  function createLevelDropdown(wordObj) {
-    const dropdown = document.createElement('div');
-    dropdown.className = 'level-dropdown';
-    dropdown.innerHTML = Array.from({length: 5}, (_, i) => i + 1)
-      .map(level => `<span class="level-option level-${level}" data-level="${level}">Level ${level}</span>`)
-      .join('');
-    return dropdown;
-  }
-
-  function updateWordLevel(word, newLevel) {
-    chrome.storage.local.get(['words'], result => {
-      const words = result.words || [];
-      const wordIndex = words.findIndex(w => w.word === word);
-      
-      if (wordIndex !== -1) {
-        words[wordIndex].level = newLevel;
-        chrome.storage.local.set({ words }, () => {
-          const activeTab = document.querySelector('.tab.active');
-          if (activeTab.dataset.tab === 'learning') {
-            loadLearningProgress();
-          } else {
-            loadWords();
-          }
-        });
-      }
-    });
+    </span>${reviewButton}`;
   }
 
   function createWordItem(wordObj) {
     const activeTab = document.querySelector('.tab.active');
-    const isLearningTab = activeTab.dataset.tab === 'learning';
+    const isLearningTab = activeTab.dataset.tab === 'learning' || activeTab.dataset.tab === 'repeatition';
 
     const wordItem = document.createElement('div');
     wordItem.className = 'word-item';
     wordItem.innerHTML = `
       <span class="word-text">
-        ${wordObj.count > 1 ? `<span class="word-count-badge">${wordObj.count}</span>` : ''}
+        ${wordObj.encounterCount > 1 ? `<span class="word-count-badge">${wordObj.encounterCount}</span>` : ''}
         ${wordObj.word}
-        ${isLearningTab ? createLevelBadge(wordObj.level || 1) : `<span class="level-badge level-${wordObj.level || 1}" data-level="${wordObj.level || 1}">${wordObj.level || 1}</span>`}
+        ${isLearningTab ? createLevelBadge(wordObj.learningLevel || 0, wordObj.isInReview) : createSimpleLevelBadge(wordObj.learningLevel || 0)}
       </span>
       <div class="word-actions">
         <span class="icon-wrapper sound-icon" title="Play Sound" data-word="${wordObj.word}">
@@ -168,11 +215,25 @@ document.addEventListener('DOMContentLoaded', () => {
       dropdown.classList.toggle('show');
     });
 
+    // Add review button click handler
+    const reviewButton = wordItem.querySelector('.review-button');
+    if (reviewButton) {
+      reviewButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const currentLevel = wordObj.learningLevel || 0;
+        if (typeof wordObj.word === 'string' && wordObj.word.trim() !== '') {
+          updateWordProgress(wordObj.word, currentLevel);
+        } else {
+          console.error('Invalid word object:', wordObj);
+        }
+      });
+    }
+
     // Create and append level dropdown for both tabs
     const dropdown = document.createElement('div');
     dropdown.className = 'level-dropdown';
-    dropdown.innerHTML = Array.from({length: 5}, (_, i) => i + 1)
-      .map(level => `<span class="level-option level-${level} ${level === (wordObj.level || 1) ? 'current' : ''}" 
+    dropdown.innerHTML = Array.from({length: 7}, (_, i) => i) // 0'dan 6'ya kadar
+      .map(level => `<span class="level-option level-${level} ${level === (wordObj.learningLevel || 0) ? 'current' : ''}" 
         data-level="${level}" 
         data-word="${wordObj.word}">
         ${level}
@@ -187,7 +248,11 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
         const newLevel = parseInt(option.dataset.level);
         const word = option.dataset.word;
-        updateWordLevel(word, newLevel);
+        if (typeof word === 'string' && word.trim() !== '' && !isNaN(newLevel) && newLevel >= 0 && newLevel <= 6) {
+          updateWordProgress(word, newLevel);
+        } else {
+          console.error('Invalid level option data:', { word, newLevel });
+        }
       }
     });
 
@@ -198,7 +263,11 @@ document.addEventListener('DOMContentLoaded', () => {
         levelUpIcon.addEventListener('click', (e) => {
           e.stopPropagation();
           const currentLevel = parseInt(e.currentTarget.dataset.level);
-          levelUp(wordObj.word, currentLevel);
+          if (!isNaN(currentLevel) && currentLevel >= 0 && currentLevel < 6) {
+            updateWordProgress(wordObj.word, currentLevel + 1);
+          } else {
+            console.error('Invalid level for level up:', currentLevel);
+          }
         });
       }
     }
@@ -230,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Group words by date
       const groupedWords = words.reduce((groups, word) => {
-        const date = new Date(word.date);
+        const date = new Date(word.addedDate || word.date);
         const dateKey = date.toLocaleDateString();
         if (!groups[dateKey]) {
           groups[dateKey] = [];
@@ -250,6 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dateSection = document.createElement('div');
         dateSection.className = 'date-section';
         
+        dateSection.classList.add('collapsed');
         const dateHeader = document.createElement('div');
         dateHeader.className = 'date-header';
         const wordCount = dateWords.length;
@@ -266,10 +336,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const wordContainer = document.createElement('div');
         wordContainer.className = 'word-container';
 
-        dateWords.sort((a, b) => new Date(b.date) - new Date(a.date))
-          .forEach(wordObj => {
-            wordContainer.appendChild(createWordItem(wordObj));
-          });
+        // Sort words by date within each section
+        dateWords.sort((a, b) => {
+          const dateA = new Date(a.addedDate || a.date);
+          const dateB = new Date(b.addedDate || b.date);
+          return dateB - dateA;
+        }).forEach(wordObj => {
+          wordContainer.appendChild(createWordItem(wordObj));
+        });
 
         dateSection.appendChild(dateHeader);
         dateSection.appendChild(wordContainer);
@@ -281,6 +355,12 @@ document.addEventListener('DOMContentLoaded', () => {
           const toggleIcon = dateHeader.querySelector('.toggle-icon');
           toggleIcon.style.transform = dateSection.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0)';
         });
+
+        // Set initial toggle icon rotation for collapsed sections
+        if (dateSection.classList.contains('collapsed')) {
+          const toggleIcon = dateHeader.querySelector('.toggle-icon');
+          toggleIcon.style.transform = 'rotate(-90deg)';
+        }
       });
     });
   }
@@ -293,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Group words by level
       const groupedByLevel = words.reduce((groups, word) => {
-        const level = word.level || 1;
+        const level = word.learningLevel || 0;
         if (!groups[level]) {
           groups[level] = [];
         }
@@ -301,21 +381,26 @@ document.addEventListener('DOMContentLoaded', () => {
         return groups;
       }, {});
 
-      // Create sections for each level (1 to 5)
-      for (let level = 1; level <= 5; level++) {
+      // Create sections for each level (0 to 6)
+
+      for (let level = 0; level <= 6; level++) {
         const levelWords = groupedByLevel[level] || [];
         if (levelWords.length > 0) {
           const levelSection = document.createElement('div');
           levelSection.className = 'date-section';
           
+          levelSection.classList.add('collapsed');
+          
           const levelHeader = document.createElement('div');
           levelHeader.className = 'date-header';
           
-          levelHeader.classList.add(`level-${level}`);
-
+          const style = LEVEL_STYLES[level] || LEVEL_STYLES[0];
           levelHeader.innerHTML = `
             <div class="date-info">
-              <span class="level-badge level-${level}">Level ${level}</span>
+              <span class="level-badge level-${level}" 
+                style="color: ${style.color}; background-color: ${style.bgColor}; border-color: ${style.borderColor};">
+                Level ${level}
+              </span>
               <span class="date-word-count">(${levelWords.length} word${levelWords.length !== 1 ? 's' : ''})</span>
             </div>
             <span class="toggle-icon">
@@ -327,7 +412,11 @@ document.addEventListener('DOMContentLoaded', () => {
           wordContainer.className = 'word-container';
 
           // Sort words by date within each level
-          levelWords.sort((a, b) => new Date(b.date) - new Date(a.date));
+          levelWords.sort((a, b) => {
+            const dateA = new Date(a.addedDate || a.date);
+            const dateB = new Date(b.addedDate || b.date);
+            return dateB - dateA;
+          });
 
           levelWords.forEach(wordObj => {
             const wordItem = createWordItem(wordObj);
@@ -344,6 +433,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const toggleIcon = levelHeader.querySelector('.toggle-icon');
             toggleIcon.style.transform = levelSection.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0)';
           });
+
+          // Set initial toggle icon rotation for collapsed sections
+          if (levelSection.classList.contains('collapsed')) {
+            const toggleIcon = levelHeader.querySelector('.toggle-icon');
+            toggleIcon.style.transform = 'rotate(-90deg)';
+          }
         }
       }
 
@@ -365,17 +460,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const words = result.words || [];
       const updatedWords = words.filter(word => word.word !== wordToDelete);
       chrome.storage.local.set({ words: updatedWords }, () => {
-        // Reload both views to keep them in sync
+        // Reload all views to keep them in sync
         loadWords();
         loadLearningProgress();
-        
-        // Update the active view based on current tab
-        const activeTab = document.querySelector('.tab.active');
-        if (activeTab.dataset.tab === 'learning') {
-          loadLearningProgress();
-        } else {
-          loadWords();
-        }
+        loadSpacedRepeatition();
       });
     });
   }
@@ -413,7 +501,10 @@ document.addEventListener('DOMContentLoaded', () => {
           if (wordIndex !== -1) {
             words[wordIndex].word = newWord;
             chrome.storage.local.set({ words }, () => {
-              loadWords(); // Reload the word list
+              // Reload all views to keep them in sync
+              loadWords();
+              loadLearningProgress();
+              loadSpacedRepeatition();
             });
           }
         });
@@ -659,6 +750,543 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Initial load - starting with Learning Progress
-  loadLearningProgress();
+  // Date utility functions
+  const DateUtils = {
+    // Convert any date to local midnight UTC
+    toLocalMidnightUTC: (date) => {
+      // Get the date in local timezone
+      const localDate = new Date(date);
+      // Set to midnight in local timezone
+      localDate.setHours(0, 0, 0, 0);
+      // Convert to UTC
+      const utcDate = new Date(Date.UTC(
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate()
+      ));
+      return utcDate;
+    },
+
+    // Get today's date at local midnight UTC
+    getTodayUTC: () => {
+      const now = new Date();
+      return DateUtils.toLocalMidnightUTC(now);
+    },
+
+    // Add days to a date
+    addDays: (date, days) => {
+      const result = new Date(date);
+      result.setUTCDate(result.getUTCDate() + days);
+      return result;
+    },
+
+    // Compare two dates (ignoring time)
+    compareDates: (date1, date2) => {
+      const d1 = DateUtils.toLocalMidnightUTC(date1);
+      const d2 = DateUtils.toLocalMidnightUTC(date2);
+      return d1.getTime() - d2.getTime();
+    },
+
+    // Format date for display
+    formatDate: (date) => {
+      const localDate = new Date(date);
+      return localDate.toLocaleDateString('en-US', { 
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+  };
+
+  function updateWordProgress(word, newLevel) {
+    chrome.storage.local.get(['words'], result => {
+      const words = result.words || [];
+      const wordIndex = words.findIndex(w => w.word === word);
+      
+      if (wordIndex !== -1) {
+        const wordObj = words[wordIndex];
+        const currentLevel = wordObj.learningLevel || 0;
+        
+        let isLevelDown = newLevel < currentLevel
+
+        // Calculate next review date based on new level
+        let nextReviewDate = null;
+        const todayUTC = DateUtils.getTodayUTC();
+
+        // Use current nextReviewDate as base, or today if not set
+        let baseDate;
+        if (isLevelDown) {
+          baseDate = todayUTC;
+        } else if (wordObj.nextReviewDate) {
+          baseDate = DateUtils.toLocalMidnightUTC(new Date(wordObj.nextReviewDate));
+        } else {
+          baseDate = todayUTC;
+        }
+
+        // Set review date based on the new level
+        switch (newLevel) {
+          case 0:
+            nextReviewDate = todayUTC; // Level 0: Same day
+            break;
+          case 1:
+            nextReviewDate = DateUtils.addDays(baseDate, 1); // Level 1: +1 day from Level 0
+            break;
+          case 2:
+            nextReviewDate = DateUtils.addDays(baseDate, 2); // Level 2: +2 days from Level 1
+            break;
+          case 3:
+            nextReviewDate = DateUtils.addDays(baseDate, 3); // Level 3: +3 days from Level 2
+            break;
+          case 4:
+            nextReviewDate = DateUtils.addDays(baseDate, 7); // Level 4: +7 days from Level 3
+            break;
+          case 5:
+            nextReviewDate = DateUtils.addDays(baseDate, 16); // Level 5: +16 days from Level 4
+            break;
+          case 6:
+            nextReviewDate = null; // Level 6: from Level 5, review progress completed.
+            break;
+        }
+
+        // Determine isInReview state
+        let isInReview;
+        if (newLevel === 0) {
+          // For level 0, keep the current isInReview state
+          isInReview = !wordObj.isInReview;
+        } else {
+          // For other levels, isInReview is always true
+          isInReview = newLevel === 6 ? false : true;
+        }
+
+        // Create a new history entry
+        const historyEntry = {
+          fromLevel: currentLevel,
+          toLevel: newLevel,
+          timestamp: new Date().toISOString(),
+          type: newLevel > currentLevel ? 'levelUp' : newLevel < currentLevel ? 'levelDown' : 'same'
+        };
+
+        // Initialize or update repetition history
+        const repetitionHistory = Array.isArray(wordObj.repetitionHistory) ? wordObj.repetitionHistory : [];
+        repetitionHistory.push(historyEntry);
+
+        // Update word object with all necessary fields
+        words[wordIndex] = {
+          ...wordObj,
+          word: wordObj.word || '',
+          meaning: wordObj.meaning || "",
+          examples: Array.isArray(wordObj.examples) ? wordObj.examples : [],
+          isInReview: isInReview,
+          encounterCount: wordObj.encounterCount || 1,
+          learningLevel: newLevel,
+          addedDate: wordObj.addedDate || new Date().toISOString(),
+          repetitionHistory: repetitionHistory,
+          nextReviewDate: nextReviewDate ? nextReviewDate.toISOString() : null,
+        };
+
+        // Save updated words
+        chrome.storage.local.set({ words }, () => {
+          if (chrome.runtime.lastError) {
+            console.error('Error saving word progress:', chrome.runtime.lastError);
+          } else {
+            console.log('Word progress updated successfully:', {
+              word: word,
+              oldLevel: currentLevel,
+              newLevel: newLevel,
+              nextReviewDate: nextReviewDate,
+              isInReview: isInReview,
+              historyEntry: historyEntry
+            });
+            // Reload all views
+            loadWords();
+            loadLearningProgress();
+            loadSpacedRepeatition();
+          }
+        });
+      }
+    });
+  }
+
+  // Function to check for missed reviews and update levels accordingly
+  async function checkMissedReviews() {
+    try {
+      const result = await chrome.storage.local.get(['words']);
+      const words = result.words || [];
+      const todayUTC = DateUtils.getTodayUTC();
+      let hasUpdates = false;
+
+      // Process each word
+      for (const word of words) {
+        if (!word.isInReview || word.learningLevel === 6) continue;
+
+        const nextReviewDate = word.nextReviewDate ? 
+          DateUtils.toLocalMidnightUTC(new Date(word.nextReviewDate)) : 
+          null;
+
+        if (nextReviewDate && DateUtils.compareDates(nextReviewDate, todayUTC) < 0) {
+          // Word has a missed review
+          const currentLevel = word.learningLevel || 0;
+          if (currentLevel > 0) {
+            // Decrease level by 1, but not below 0
+            const newLevel = Math.max(0, currentLevel - 1);
+            console.log(`Missed review for word "${word.word}": Level ${currentLevel} -> ${newLevel}`);
+            
+            // Use updateWordProgress to handle the level down
+            updateWordProgress(word.word, newLevel);
+            hasUpdates = true;
+          }
+        }
+      }
+
+      if (hasUpdates) {
+        console.log('Completed checking for missed reviews');
+      }
+    } catch (error) {
+      console.error('Error checking missed reviews:', error);
+    }
+  }
+
+  function loadSpacedRepeatition() {
+    chrome.storage.local.get(['words'], result => {
+      const words = result.words || [];
+      const repeatitionList = document.getElementById('repeatitionList');
+      
+      if (!repeatitionList) {
+        console.error('repeatitionList element not found');
+        return;
+      }
+      
+      repeatitionList.innerHTML = '';
+
+      // Get today's date at midnight for accurate comparison
+      const todayUTC = DateUtils.getTodayUTC();
+
+      console.log('Loading spaced repetition for date:', todayUTC.toISOString());
+
+      // Group words by review status and date
+      const groupedWords = words.reduce((groups, word) => {
+        const level = word.learningLevel || 0;
+        
+        // Convert nextReviewDate to local date for comparison
+        let wordReviewDate = null;
+        if (word.nextReviewDate) {
+          wordReviewDate = DateUtils.toLocalMidnightUTC(new Date(word.nextReviewDate));
+        }
+        
+        console.log('Processing word:', {
+          word: word.word,
+          level: level,
+          isInReview: word.isInReview,
+          reviewDate: wordReviewDate,
+          reviewDateLocal: wordReviewDate ? new Date(wordReviewDate).toLocaleString() : null
+        });
+
+        // If word is in review (either level > 0 or level 0 with isInReview true)
+        if (word.isInReview) {
+          if (!wordReviewDate) {
+            // If no review date, add to today's reviews
+            if (!groups.today) groups.today = [];
+            groups.today.push(word);
+          } else {
+            // Calculate days difference
+            const daysDiff = Math.floor(DateUtils.compareDates(wordReviewDate, todayUTC) / (1000 * 60 * 60 * 24));
+            
+            if (daysDiff === 0) {
+              // Today's reviews
+              if (!groups.today) groups.today = [];
+              groups.today.push(word);
+            } else if (daysDiff > 0) {
+              // Future reviews
+              const dateKey = wordReviewDate.toISOString();
+              if (!groups.future) groups.future = {};
+              if (!groups.future[dateKey]) groups.future[dateKey] = [];
+              groups.future[dateKey].push(word);
+            }
+          }
+        } else if (level === 0) {
+          // Words that haven't started the review process
+          if (!groups.notStarted) groups.notStarted = [];
+          groups.notStarted.push(word);
+        }
+        return groups;
+      }, {});
+
+      console.log('Grouped words:', {
+        today: groupedWords.today?.length || 0,
+        future: groupedWords.future ? Object.keys(groupedWords.future).length : 0,
+        notStarted: groupedWords.notStarted?.length || 0
+      });
+
+      // Create sections for each group
+      if (groupedWords.today && groupedWords.today.length > 0) {
+        const todaySection = createReviewSection('Today\'s Reviews', groupedWords.today);
+        repeatitionList.appendChild(todaySection);
+      }
+
+      // Create sections for future reviews
+      if (groupedWords.future) {
+        // Sort future dates
+        const sortedDates = Object.keys(groupedWords.future).sort();
+        
+        // Show only next 7 days of reviews
+        sortedDates.slice(0, 7).forEach(dateKey => {
+          const words = groupedWords.future[dateKey];
+          const date = new Date(dateKey);
+          const tomorrow = DateUtils.addDays(todayUTC, 1);
+          
+          let sectionTitle;
+          if (DateUtils.compareDates(date, tomorrow) === 0) {
+            sectionTitle = 'Tomorrow\'s Reviews';
+          } else {
+            sectionTitle = DateUtils.formatDate(date) + ' Reviews';
+          }
+          
+          const futureSection = createReviewSection(sectionTitle, words);
+          repeatitionList.appendChild(futureSection);
+        });
+      }
+
+      // Create section for not started words
+      if (groupedWords.notStarted && groupedWords.notStarted.length > 0) {
+        const notStartedSection = createReviewSection('Not Started', groupedWords.notStarted);
+        repeatitionList.appendChild(notStartedSection);
+      }
+    });
+  }
+
+  function createReviewSection(title, words) {
+    const section = document.createElement('div');
+    section.className = 'date-section';
+    
+    // Add collapsed class by default if it's not Today's Reviews
+    if (title !== 'Today\'s Reviews') {
+      section.classList.add('collapsed');
+    }
+    
+    const header = document.createElement('div');
+    header.className = 'date-header';
+    
+    // Add success class for Today's Reviews
+    if (title === 'Today\'s Reviews') {
+      header.classList.add('success');
+    }
+    
+    header.innerHTML = `
+      <div class="date-info">
+        <span class="section-title">${title}</span>
+        <span class="date-word-count">(${words.length} word${words.length !== 1 ? 's' : ''})</span>
+      </div>
+      <span class="toggle-icon">
+        ${createSvgIcon('toggleDown', 16)}
+      </span>
+    `;
+
+    const wordContainer = document.createElement('div');
+    wordContainer.className = 'word-container';
+
+    // Sort words by next review date
+    words.sort((a, b) => {
+      const dateA = a.nextReviewDate ? new Date(a.nextReviewDate) : new Date(0);
+      const dateB = b.nextReviewDate ? new Date(b.nextReviewDate) : new Date(0);
+      return dateA - dateB;
+    });
+
+    words.forEach(wordObj => {
+      const wordItem = createWordItem(wordObj);
+      wordContainer.appendChild(wordItem);
+    });
+
+    section.appendChild(header);
+    section.appendChild(wordContainer);
+
+    // Add click event for collapsible functionality
+    header.addEventListener('click', () => {
+      section.classList.toggle('collapsed');
+      const toggleIcon = header.querySelector('.toggle-icon');
+      toggleIcon.style.transform = section.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0)';
+    });
+
+    // Set initial toggle icon rotation for collapsed sections
+    if (section.classList.contains('collapsed')) {
+      const toggleIcon = header.querySelector('.toggle-icon');
+      toggleIcon.style.transform = 'rotate(-90deg)';
+    }
+
+    return section;
+  }
+
+  // Storage işlemleri için yardımcı fonksiyonlar
+  function saveToStorage(key, data) {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.set({ [key]: data }, () => {
+        if (chrome.runtime.lastError) {
+          console.error('Storage error:', chrome.runtime.lastError);
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
+
+  function getFromStorage(key) {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get([key], (result) => {
+        if (chrome.runtime.lastError) {
+          console.error('Storage error:', chrome.runtime.lastError);
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(result[key]);
+        }
+      });
+    });
+  }
+
+  // Eski modelden yeni modele geçiş fonksiyonu
+  async function migrateOldData() {
+    try {
+      console.log('Starting migration process...');
+      
+      const oldData = await getFromStorage('words');
+      console.log('Retrieved old data:', oldData);
+
+      if (!oldData) {
+        console.log('No data found to migrate');
+        return;
+      }
+
+      // Veri formatını kontrol et
+      if (!Array.isArray(oldData)) {
+        console.error('Invalid data format: Expected array but got', typeof oldData);
+        throw new Error('Invalid data format');
+      }
+
+      // Migration kontrolü - Eğer ilk kelime yeni formatta ise migration yapma
+      if (oldData.length > 0 && 
+          oldData[0].hasOwnProperty('repetitionHistory') && 
+          Array.isArray(oldData[0].repetitionHistory)) {
+        console.log('Data is already in new format (repetitionHistory exists)');
+        return;
+      }
+
+      console.log('Starting migration from old format to new format...');
+      console.log('Sample old data:', oldData[0]);
+      
+      const newData = oldData.map((oldWord, index) => {
+        try {
+          // Eski modeldeki alanları kontrol et ve yeni modele dönüştür
+          const oldLevel = parseInt(oldWord.level) || 0; // Varsayılan olarak 0
+          const newLevel = Math.max(0, oldLevel - 1); // Tüm levelleri 1 azalt
+
+          // Tarih kontrolü ve düzeltmesi
+          let addedDate = oldWord.date || new Date().toISOString();
+          try {
+            // Tarih formatını kontrol et ve düzelt
+            const date = new Date(addedDate);
+            if (isNaN(date.getTime())) {
+              // Geçersiz tarih ise şu anki tarihi kullan
+              addedDate = new Date().toISOString();
+            } else {
+              // Geçerli tarihi ISO formatına çevir
+              addedDate = date.toISOString();
+            }
+          } catch (dateError) {
+            console.warn(`Invalid date for word ${oldWord.word}, using current date`);
+            addedDate = new Date().toISOString();
+          }
+
+          const newWord = {
+            word: oldWord.word || '',
+            meaning: oldWord.meaning || "",
+            examples: Array.isArray(oldWord.examples) ? oldWord.examples : [],
+            isInReview: oldWord.isInReview || false,
+            encounterCount: parseInt(oldWord.count) || 1,
+            learningLevel: newLevel,
+            addedDate: addedDate,
+            repetitionHistory: [], 
+            nextReviewDate: null, 
+          };
+
+          // Veri doğrulama
+          if (!newWord.word) {
+            console.warn(`Word at index ${index} has no word property, skipping...`);
+            return null;
+          }
+
+          console.log(`Migrating word: ${newWord.word}, Old level: ${oldLevel}, New level: ${newLevel}, Date: ${newWord.addedDate}`);
+          return newWord;
+        } catch (wordError) {
+          console.error(`Error processing word at index ${index}:`, wordError);
+          console.error('Problematic word data:', oldWord);
+          return null;
+        }
+      }).filter(word => word !== null);
+
+      console.log('Migration completed. New data sample:', newData[0]);
+      console.log(`Migrated ${newData.length} words successfully`);
+
+      // Yeni veriyi kaydet
+      await saveToStorage('words', newData);
+      console.log('New data saved successfully');
+      
+      // UI'ı güncelle
+      const activeTab = document.querySelector('.tab.active');
+      if (activeTab.dataset.tab === 'repeatition') {
+        loadSpacedRepeatition();
+      } else if (activeTab.dataset.tab === 'learning') {
+        loadLearningProgress();
+      } else {
+        loadWords();
+      }
+    } catch (error) {
+      console.error('Migration error details:', error);
+      console.error('Error stack:', error.stack);
+      
+      let errorMessage = 'Veri dönüşümü sırasında bir hata oluştu: ';
+      if (error.message) {
+        errorMessage += error.message;
+      } else {
+        errorMessage += 'Bilinmeyen bir hata';
+      }
+      
+      alert(errorMessage + '\n\nLütfen console\'da hata detaylarını kontrol edin.');
+    }
+  }
+
+  // Load notification settings
+  async function loadNotificationSettings() {
+    const result = await chrome.storage.local.get(['notificationSettings']);
+    const settings = result.notificationSettings || {
+      enabled: true,
+      time: '09:00'
+    };
+    
+    notificationToggle.checked = settings.enabled;
+    notificationTime.value = settings.time;
+    notificationTime.disabled = !settings.enabled;
+  }
+
+  // Save notification settings
+  async function saveNotificationSettings() {
+    const settings = {
+      enabled: notificationToggle.checked,
+      time: notificationTime.value
+    };
+    
+    await chrome.storage.local.set({ notificationSettings: settings });
+    
+    // Update alarm in background
+    chrome.runtime.sendMessage({
+      action: 'updateNotificationSettings',
+      settings: settings
+    });
+  }
+
+  // Event listeners for notification settings
+  notificationToggle.addEventListener('change', () => {
+    notificationTime.disabled = !notificationToggle.checked;
+    saveNotificationSettings();
+  });
+
+  notificationTime.addEventListener('change', saveNotificationSettings);
 });
