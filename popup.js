@@ -535,9 +535,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     chrome.storage.local.get(['words'], result => {
       const words = result.words || [];
       if (words.length === 0) return;
-      let csv = '"Word";"Date"\n';
+      let csv = '"Word";"Meaning";"Examples";"Learning Level";"Encounter Count";"Added Date";"Next Review Date"\n';
       csv += words.map(word =>
-        `"${word.word.replace(/"/g, '""')}";"${new Date(word.date).toLocaleString()}"`
+        `"${word.word.replace(/"/g, '""')}";"${(word.meaning || '').replace(/"/g, '""')}";"${(word.examples || []).join(', ').replace(/"/g, '""')}";"${word.learningLevel || 0}";"${word.encounterCount || 1}";"${new Date(word.addedDate).toLocaleString()}";"${word.nextReviewDate ? new Date(word.nextReviewDate).toLocaleString() : ''}"`
       ).join("\n");
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
@@ -552,7 +552,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     chrome.storage.local.get(['words'], result => {
       const words = result.words || [];
       if (words.length === 0) return;
-      const json = JSON.stringify(words, null, 2);
+      
+      // Create a clean export object with only necessary fields
+      const exportData = words.map(word => ({
+        word: word.word,
+        meaning: word.meaning || "",
+        examples: Array.isArray(word.examples) ? word.examples : [],
+        isInReview: word.isInReview || false,
+        encounterCount: word.encounterCount || 1,
+        learningLevel: word.learningLevel || 0,
+        addedDate: word.addedDate,
+        repetitionHistory: Array.isArray(word.repetitionHistory) ? word.repetitionHistory : [],
+        nextReviewDate: word.nextReviewDate
+      }));
+
+      const json = JSON.stringify(exportData, null, 2);
       const blob = new Blob([json], { type: 'application/json' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -566,7 +580,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     chrome.storage.local.get(['words'], result => {
       const words = result.words || [];
       if (words.length === 0) return;
-      const txt = words.map(word => word.word).join("\n");
+      
+      // Create a formatted text output with word details
+      const txt = words.map(word => {
+        const details = [
+          `Word: ${word.word}`,
+          `Meaning: ${word.meaning || ''}`,
+          `Examples: ${(word.examples || []).join(', ')}`,
+          `Learning Level: ${word.learningLevel || 0}`,
+          `Encounter Count: ${word.encounterCount || 1}`,
+          `Added Date: ${new Date(word.addedDate).toLocaleString()}`,
+          `Next Review Date: ${word.nextReviewDate ? new Date(word.nextReviewDate).toLocaleString() : 'Not set'}`,
+          '---'
+        ].join('\n');
+        return details;
+      }).join('\n\n');
+
       const blob = new Blob([txt], { type: 'text/plain' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -629,7 +658,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             importedWords = importedWords.map(item => ({
               word: item.word || '',
-              date: item.date || new Date().toISOString()
+              meaning: item.meaning || "",
+              examples: Array.isArray(item.examples) ? item.examples : [],
+              isInReview: false,
+              encounterCount: parseInt(item.encounterCount) || 1,
+              learningLevel: 0,
+              addedDate: item.addedDate || new Date().toISOString(),
+              repetitionHistory: [],
+              nextReviewDate: null
             }));
             break;
 
@@ -645,7 +681,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (word) {
                   importedWords.push({
                     word,
-                    date: date || new Date().toISOString()
+                    meaning: "",
+                    examples: [],
+                    isInReview: false,
+                    encounterCount: 1,
+                    learningLevel: 0,
+                    addedDate: date || new Date().toISOString(),
+                    repetitionHistory: [],
+                    nextReviewDate: null
                   });
                 }
               }
@@ -659,7 +702,14 @@ document.addEventListener('DOMContentLoaded', async () => {
               .filter(word => word.length > 0)
               .map(word => ({
                 word,
-                date: new Date().toISOString()
+                meaning: "",
+                examples: [],
+                isInReview: false,
+                encounterCount: 1,
+                learningLevel: 0,
+                addedDate: new Date().toISOString(),
+                repetitionHistory: [],
+                nextReviewDate: null
               }));
             break;
 
