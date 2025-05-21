@@ -530,23 +530,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     input.addEventListener('blur', saveEdit);
   }
 
-  // Export to CSV
-  exportCsvBtn.addEventListener('click', () => {
-    chrome.storage.local.get(['words'], result => {
-      const words = result.words || [];
-      if (words.length === 0) return;
-      let csv = '"Word";"Meaning";"Examples";"Learning Level";"Encounter Count";"Added Date";"Next Review Date"\n';
-      csv += words.map(word =>
-        `"${word.word.replace(/"/g, '""')}";"${(word.meaning || '').replace(/"/g, '""')}";"${(word.examples || []).join(', ').replace(/"/g, '""')}";"${word.learningLevel || 0}";"${word.encounterCount || 1}";"${new Date(word.addedDate).toLocaleString()}";"${word.nextReviewDate ? new Date(word.nextReviewDate).toLocaleString() : ''}"`
-      ).join("\n");
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'wordhunter.csv';
-      link.click();
-    });
-  });
-
   // Export to JSON
   exportJsonBtn.addEventListener('click', () => {
     chrome.storage.local.get(['words'], result => {
@@ -575,6 +558,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  // Export to CSV
+  exportCsvBtn.addEventListener('click', () => {
+    chrome.storage.local.get(['words'], result => {
+      const words = result.words || [];
+      if (words.length === 0) return;
+      let csv = '"Word";"Meaning";"Examples";"Is In Review";"Encounter Count";"Learning Level";"Added Date";"Next Review Date"\n';
+      csv += words.map(word =>
+        `"${word.word.replace(/"/g, '""')}";"${(word.meaning || '').replace(/"/g, '""')}";"${(word.examples || []).join(', ').replace(/"/g, '""')}";"${word.isInReview}";"${word.encounterCount || 1}";"${word.learningLevel || 0}";"${new Date(word.addedDate).toLocaleString()}";"${word.nextReviewDate ? new Date(word.nextReviewDate).toLocaleString() : ''}"`
+      ).join("\n");
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'wordhunter.csv';
+      link.click();
+    });
+  });
+
   // Export to TXT
   exportTxtBtn.addEventListener('click', () => {
     chrome.storage.local.get(['words'], result => {
@@ -587,6 +587,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           `Word: ${word.word}`,
           `Meaning: ${word.meaning || ''}`,
           `Examples: ${(word.examples || []).join(', ')}`,
+          `Is In Review: ${word.isInReview}`,
           `Learning Level: ${word.learningLevel || 0}`,
           `Encounter Count: ${word.encounterCount || 1}`,
           `Added Date: ${new Date(word.addedDate).toLocaleString()}`,
@@ -660,12 +661,12 @@ document.addEventListener('DOMContentLoaded', async () => {
               word: item.word || '',
               meaning: item.meaning || "",
               examples: Array.isArray(item.examples) ? item.examples : [],
-              isInReview: false,
+              isInReview: item.isInReview || false,
               encounterCount: parseInt(item.encounterCount) || 1,
-              learningLevel: 0,
+              learningLevel: parseInt(item.learningLevel) || 0,
               addedDate: item.addedDate || new Date().toISOString(),
-              repetitionHistory: [],
-              nextReviewDate: null
+              repetitionHistory: Array.isArray(item.repetitionHistory) ? item.repetitionHistory : [],
+              nextReviewDate: item.nextReviewDate || null
             }));
             break;
 
@@ -675,20 +676,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             for (let i = 1; i < lines.length; i++) {
               const line = lines[i].trim();
               if (line) {
-                const [word, date] = line.split(';').map(item => 
-                  item.replace(/^"(.*)"$/, '$1').trim()
-                );
+                const [word, meaning, examples, isInReview, encounterCount, learningLevel, addedDate, nextReviewDate] = 
+                  line.split(';').map(item => item.replace(/^"(.*)"$/, '$1').trim());
+                
                 if (word) {
                   importedWords.push({
                     word,
-                    meaning: "",
-                    examples: [],
-                    isInReview: false,
-                    encounterCount: 1,
-                    learningLevel: 0,
-                    addedDate: date || new Date().toISOString(),
+                    meaning: meaning || "",
+                    examples: examples ? examples.split(',').map(e => e.trim()) : [],
+                    isInReview: isInReview === 'true',
+                    encounterCount: parseInt(encounterCount) || 1,
+                    learningLevel: parseInt(learningLevel) || 0,
+                    addedDate: addedDate || new Date().toISOString(),
                     repetitionHistory: [],
-                    nextReviewDate: null
+                    nextReviewDate: nextReviewDate || null
                   });
                 }
               }
