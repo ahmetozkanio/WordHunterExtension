@@ -1,3 +1,11 @@
+// Import WordManager
+import wordManager from './wordManager.js';
+
+// Initialize WordManager
+wordManager.initialize().catch(error => {
+  console.error('Failed to initialize WordManager:', error);
+});
+
 // Initialize storage if not exists
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.get(['words', 'notificationSettings'], (result) => {
@@ -29,7 +37,10 @@ chrome.contextMenus.create({
 
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
+  console.log('Context menu clicked:', info);
+  console.log('Context menu clicked on tab:', tab);
   if (info.menuItemId === "save-word" && info.selectionText) {
+    console.log('Context menu item is save-word and text is selected. Sending message...');
     chrome.tabs.sendMessage(
       tab.id,
       {
@@ -37,13 +48,16 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         text: info.selectionText.trim()
       },
       (response) => {  
+        console.log('Message sent callback received.', response);
         if (chrome.runtime.lastError) {
-          console.error("Hata:", chrome.runtime.lastError);
+          console.error("Error sending message:", chrome.runtime.lastError);
         } else {
-          console.log("Cevap:", response);
+          console.log("Response from content script:", response);
         }
       }
     );
+  } else {
+    console.log('Context menu clicked, but not for saving a word or no text selected.');
   }
 });
 
@@ -63,25 +77,13 @@ function testNotification() {
 // Check for words that need review
 async function checkWordsForReview() {
   try {
-    const result = await chrome.storage.local.get(['words', 'notificationSettings']);
-    const words = result.words || [];
-    const settings = result.notificationSettings || { enabled: true, time: '09:00' };
+    const settings = await chrome.storage.local.get(['notificationSettings']);
+    const notificationSettings = settings.notificationSettings || { enabled: true, time: '09:00' };
     
     // If notifications are disabled, don't check
-    if (!settings.enabled) return;
+    if (!notificationSettings.enabled) return;
     
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Filter words that are in review and due today
-    const wordsToReview = words.filter(word => {
-      if (!word.isInReview || !word.nextReviewDate) return false;
-      
-      const reviewDate = new Date(word.nextReviewDate);
-      reviewDate.setHours(0, 0, 0, 0);
-      
-      return reviewDate.getTime() === today.getTime();
-    });
+    const wordsToReview = wordManager.getWordsForReview();
 
     if (wordsToReview.length > 0) {
       // Create notification with sound

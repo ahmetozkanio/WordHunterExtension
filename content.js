@@ -1,3 +1,6 @@
+// content.js script started
+// console.log('WordHunter content.js script started');
+
 // Remove old button if exists
 const oldBtn = document.getElementById('wordhunter-btn');
 if (oldBtn) oldBtn.remove();
@@ -57,53 +60,41 @@ floatingButton.addEventListener('click', () => {
 });
 
 function saveWord(selectedText) {
-  if (selectedText && chrome && chrome.storage && chrome.storage.local) {
-    // Normalize the word by trimming and converting to lowercase
-    selectedText = selectedText.trim().toLowerCase();
+  selectedText = selectedText.trim().toLowerCase();
+  if (selectedText) {
+    chrome.storage.local.get({ words: [] }, (result) => {
+      const words = result.words;
+      const existingWordIndex = words.findIndex(word => word.word === selectedText);
 
-    chrome.storage.local.get(['words', 'settings'], result => {
-      // Ensure words is always an array
-      const words = Array.isArray(result.words) ? result.words : [];
-
-      // Check if word already exists (case-insensitive comparison)
-      const existingWordIndex = words.findIndex(w => w.word.toLowerCase() === selectedText.toLowerCase());
       if (existingWordIndex !== -1) {
-        // Increment count if word exists
+        // Increment count if word already exists
         words[existingWordIndex].encounterCount = (words[existingWordIndex].encounterCount || 1) + 1;
-        chrome.storage.local.set({ words }, () => {
-          if (chrome.runtime.lastError) {
-            showFeedback('Error updating word', 'error');
-          } else {
-            showFeedback(`"${selectedText}" (${words[existingWordIndex].encounterCount})`, 'warning');
-          }
-          floatingButton.style.display = 'none';
-        });
-        return;
+        showFeedback(`x${words[existingWordIndex].encounterCount} "${selectedText}" count increased!`, 'warning');
+      } else {
+        // Add new word (using WordManager structure)
+        const newWord = {
+          word: selectedText,
+          meaning: "", // Default empty
+          examples: [], // Default empty array
+          isInReview: false, // Default false
+          encounterCount: 1, // Initial count 1
+          learningLevel: 0, // Default level 0 (not started)
+          addedDate: new Date().toISOString(), // Date added
+          repetitionHistory: [], // Default empty array
+          nextReviewDate: null, // Initially null
+        };
+        words.push(newWord);
+        showFeedback(`"${selectedText}" saved!`, 'success');
       }
 
-      // Create new word entry with spaced repetition data
-      const newWord = {
-        word: selectedText,
-        meaning: "",
-        examples: [],
-        isInReview: false,
-        encounterCount: 1,
-        learningLevel: 0, // 0 = Not studied yet (inactive for repetition)
-        addedDate: new Date().toISOString(),
-        repetitionHistory: [], // Empty history until first study
-        nextReviewDate: null, // Will be set when user starts studying
-      };
-
-      // Add the new word to storage
-      words.push(newWord);
-
-      chrome.storage.local.set({ words }, () => {
+      chrome.storage.local.set({ words: words }, () => {
         if (chrome.runtime.lastError) {
+          console.error('Error saving word:', chrome.runtime.lastError);
           showFeedback('Error saving word', 'error');
         } else {
-          showFeedback(`"${selectedText}" saved!`, 'success');
+          // Hide button when word is successfully saved
+          floatingButton.style.display = 'none';
         }
-        floatingButton.style.display = 'none';
       });
     });
   }
@@ -172,9 +163,10 @@ document.addEventListener('selectionchange', () => {
 
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("Alınan mesaj:", message);  
+  // console.log("Received message:", message);  
   if (message.action === "save-word") {
-    saveWords(message.text);
+    console.log('Received save-word message from background script:', message.text);
+    saveWord(message.text); // Call the saveWord function with the text from the message
     sendResponse({success: true}); 
   }
   return true;  
