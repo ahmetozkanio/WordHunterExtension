@@ -61,7 +61,37 @@ floatingButton.addEventListener('click', () => {
 
 function saveWord(selectedText) {
   selectedText = selectedText.trim().toLowerCase();
+  console.log('Selected word:', selectedText);
+  
   if (selectedText) {
+    // Get the containing sentence
+    const selection = window.getSelection();
+    const range = selection.getRangeAt(0);
+    
+    // Clone the range to work with it
+    const rangeClone = range.cloneRange();
+    
+    // Expand the range to include the full sentence
+    while (rangeClone.startOffset > 0) {
+      rangeClone.setStart(rangeClone.startContainer, rangeClone.startOffset - 1);
+      const text = rangeClone.toString();
+      if (text.match(/[.!?]\s*$/)) {
+        rangeClone.setStart(rangeClone.startContainer, rangeClone.startOffset + 1);
+        break;
+      }
+    }
+    
+    while (rangeClone.endOffset < rangeClone.endContainer.length) {
+      rangeClone.setEnd(rangeClone.endContainer, rangeClone.endOffset + 1);
+      const text = rangeClone.toString();
+      if (text.match(/[.!?]\s*$/)) {
+        break;
+      }
+    }
+    
+    const containingSentence = rangeClone.toString().trim();
+    console.log('Found containing sentence:', containingSentence);
+
     chrome.storage.local.get({ words: [] }, (result) => {
       const words = result.words;
       const existingWordIndex = words.findIndex(word => word.word === selectedText);
@@ -69,13 +99,17 @@ function saveWord(selectedText) {
       if (existingWordIndex !== -1) {
         // Increment count if word already exists
         words[existingWordIndex].encounterCount = (words[existingWordIndex].encounterCount || 1) + 1;
+        // Add the sentence to examples if it's not already there
+        if (containingSentence && !words[existingWordIndex].examples.includes(containingSentence)) {
+          words[existingWordIndex].examples.push(containingSentence);
+        }
         showFeedback(`x${words[existingWordIndex].encounterCount} "${selectedText}" count increased!`, 'warning');
       } else {
         // Add new word (using WordManager structure)
         const newWord = {
           word: selectedText,
           meaning: "", // Default empty
-          examples: [], // Default empty array
+          examples: containingSentence ? [containingSentence] : [], // Add the containing sentence as an example
           isInReview: false, // Default false
           encounterCount: 1, // Initial count 1
           learningLevel: 0, // Default level 0 (not started)
