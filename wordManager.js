@@ -49,6 +49,7 @@ class WordManager {
         encounterCount: 1,
         learningLevel: 0,
         addedDate: new Date().toISOString(),
+        synonyms: [],
         repetitionHistory: [],
         nextReviewDate: null,
       };
@@ -278,6 +279,22 @@ class WordManager {
 
   compareDates(date1, date2) {
     return date1.getTime() - date2.getTime();
+  }
+
+  // Update word details (meaning, examples, synonyms)
+  async updateWordDetails(wordText, details) {
+    const wordIndex = this.words.findIndex(w => w.word === wordText);
+    if (wordIndex === -1) return;
+
+    this.words[wordIndex] = {
+      ...this.words[wordIndex],
+      meaning: details.meaning || "",
+      examples: Array.isArray(details.examples) ? details.examples : [],
+      synonyms: Array.isArray(details.synonyms) ? details.synonyms : []
+    };
+
+    await this.saveToStorage();
+    this.notifyListeners();
   }
 }
 

@@ -80,6 +80,7 @@ function saveWord(selectedText) {
           encounterCount: 1, // Initial count 1
           learningLevel: 0, // Default level 0 (not started)
           addedDate: new Date().toISOString(), // Date added
+          synonyms: [], // Default empty array
           repetitionHistory: [], // Default empty array
           nextReviewDate: null, // Initially null
         };

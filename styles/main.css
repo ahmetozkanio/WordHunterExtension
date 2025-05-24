@@ -1269,3 +1269,448 @@ h2.header {
     transform: scale(1.1);
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 30%, white);
 }
+
+/* Word Details Popup */
+.word-details-popup {
+  position: fixed;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  z-index: 1000;
+  background: white;
+  border: 1px solid var(--neutral-200);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  min-width: 300px;
+  max-width: 90vw;
+  width: auto;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.word-details-popup::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid var(--neutral-200);
+  top: -8px;
+  left: var(--arrow-offset, 20px);
+  filter: drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.1));
+}
+
+.word-details-popup::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 7px solid white;
+  top: -7px;
+  left: calc(var(--arrow-offset, 20px) + 1px);
+}
+
+.word-details-popup.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+.word-details-popup .close-btn {
+    cursor: pointer;
+    font-size: 18px;
+    color: #666;
+}
+
+.word-details-popup .close-btn:hover {
+  background: var(--neutral-100);
+  transform: scale(1.1);
+}
+
+.word-details-popup .close-btn svg {
+  width: 16px;
+  height: 16px;
+  color: var(--neutral-600);
+}
+
+.word-details-popup .popup-content {
+  padding: 16px;
+  padding-top: 24px;
+  background: white;
+  overflow-y: auto;
+  flex: 1;
+  min-height: min-content;
+  max-height: calc(80vh - 60px);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.word-details-popup .popup-header {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--neutral-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.word-details-popup .word-title {
+  margin: 0;
+  color: var(--primary);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.word-details-popup .word-title:hover {
+  background-color: var(--neutral-100);
+  color: var(--primary-dark);
+}
+
+.word-details-popup .meaning-section,
+.word-details-popup .examples-section,
+.word-details-popup .synonyms-section {
+  margin-bottom: 12px;
+  background: white;
+  width: 100%;
+}
+
+.word-details-popup h4 {
+  margin: 0 0 6px 0;
+  color: var(--neutral-700);
+  font-size: 10px;
+  font-weight: normal;
+}
+
+.word-details-popup p {
+  margin: 0;
+  color: var(--neutral-700);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Style for the highlighted word in examples */
+.word-details-popup .examples-section .highlight-word {
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.word-details-popup .examples-section ul {
+  margin: 0;
+  padding-left: 0;
+  color: var(--neutral-700);
+  font-size: 13px;
+  line-height: 1.5;
+  list-style: none;
+}
+
+.word-details-popup .examples-section li {
+  margin-bottom: 6px;
+  line-height: 1.5;
+  position: relative;
+  padding-left: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.word-details-popup .examples-section li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--neutral-600);
+  font-weight: bold;
+}
+
+.word-details-popup .examples-section li:last-child {
+  margin-bottom: 0;
+}
+
+/* Word Edit Popup */
+.word-edit-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.word-edit-popup .popup-content {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.word-edit-popup h3 {
+  margin: 0 0 var(--space-4);
+  color: var(--neutral-700);
+}
+
+.word-edit-popup .form-group {
+  margin-bottom: var(--space-4);
+}
+
+.word-edit-popup label {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--neutral-600);
+  font-weight: 500;
+}
+
+.word-edit-popup textarea,
+.word-edit-popup input[type="text"] {
+  width: 100%;
+  padding: var(--space-2);
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--radius-md);
+  font-size: 0.9em;
+  resize: vertical;
+}
+
+.word-edit-popup textarea:focus,
+.word-edit-popup input[type="text"]:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.word-edit-popup .popup-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  margin-top: var(--space-4);
+}
+
+.word-edit-popup button {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.word-edit-popup .save-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+}
+
+.word-edit-popup .save-btn:hover {
+  background: var(--primary-dark);
+}
+
+.word-edit-popup .cancel-btn {
+  background: white;
+  color: var(--neutral-600);
+  border: 1px solid var(--neutral-300);
+}
+
+.word-edit-popup .cancel-btn:hover {
+  background: var(--neutral-100);
+  border-color: var(--neutral-400);
+}
+
+/* Edit Icon Styles */
+.edit-icon {
+  color: var(--neutral-500);
+  cursor: pointer;
+  font-size: 10px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.edit-icon:hover {
+  opacity: 1;
+  color: var(--primary);
+}
+
+/* Update info icon styles */
+.word-actions .info-icon {
+  color: var(--neutral-500);
+}
+
+.word-actions .info-icon:hover {
+  background-color: color-mix(in srgb, var(--info) 10%, white);
+  color: var(--info);
+}
+
+.word-details-popup .editable-content {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.word-details-popup .editable-content:hover {
+  background-color: var(--neutral-50);
+  border-radius: var(--radius-md);
+}
+
+.word-details-popup .editable-content .content-text {
+  padding: 4px 8px;
+  border-radius: var(--radius-md);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.word-details-popup .editable-content .edit-area {
+  padding: 4px;
+  background-color: var(--neutral-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--neutral-200);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.word-details-popup .editable-content .edit-input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  line-height: 1.4;
+  resize: none;
+  font-family: inherit;
+  background-color: white;
+  height: 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Examples textarea remains multi-line */
+.word-details-popup .examples-section .edit-input {
+  white-space: normal;
+  overflow: auto;
+  resize: vertical;
+  min-height: 24px;
+  max-height: 120px;
+  height: auto;
+}
+
+.word-details-popup .editable-content .edit-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 20%, white);
+}
+
+.word-details-popup .popup-edit-actions {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  padding: 12px 0;
+  margin-top: 12px;
+  border-top: 1px solid var(--neutral-200);
+  display: none;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.word-details-popup .popup-edit-actions button {
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.word-details-popup .popup-edit-actions .save-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+}
+
+.word-details-popup .popup-edit-actions .save-btn:hover {
+  background: var(--primary-dark);
+}
+
+.word-details-popup .popup-edit-actions .cancel-btn {
+  background: white;
+  color: var(--neutral-600);
+  border: 1px solid var(--neutral-300);
+}
+
+.word-details-popup .popup-edit-actions .cancel-btn:hover {
+  background: var(--neutral-100);
+  border-color: var(--neutral-400);
+}
+
+.word-details-popup .examples-section li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.word-details-popup .examples-section .sound-icon {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.word-details-popup .examples-section li:hover .sound-icon {
+  opacity: 1;
+}
+
+.word-details-popup .examples-section .sound-icon:hover {
+  background-color: color-mix(in srgb, var(--info) 10%, white);
+  color: var(--info);
+}
+
+.word-details-popup .examples-section .sound-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* --- Arrow direction styles --- */
+.word-details-popup.arrow-down::before {
+    border-bottom: none;
+    border-top: 8px solid var(--neutral-200);
+    top: auto;
+    bottom: -8px;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
+}
+
+.word-details-popup.arrow-down::after {
+    border-bottom: none;
+    border-top: 7px solid white;
+    top: auto;
+    bottom: -7px;
+}
+
+/* Varsayılan arrow-up (popup aşağıda) zaten yukarıda tanımlı */
+.word-details-popup.arrow-up::before {
+    border-top: none;
+    border-bottom: 8px solid var(--neutral-200);
+    top: -8px;
+    bottom: auto;
+     filter: drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.1));
+}
+
+.word-details-popup.arrow-up::after {
+    border-top: none;
+    border-bottom: 7px solid white;
+    top: -7px;
+    bottom: auto;
+}

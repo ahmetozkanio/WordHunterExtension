@@ -1,5 +1,6 @@
-// Import WordManager
+// Import WordManager and WordDetailsPopup
 import wordManager from './wordManager.js';
+import { WordDetailsPopup } from './wordDetailsPopup.js';
 
 // Icon paths
 const ICON_PATHS = {
@@ -10,7 +11,8 @@ const ICON_PATHS = {
   settings: "M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z",
   levelUp: "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z",
   toggleDown: "M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z",
-  copy: "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+  copy: "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z",
+  edit: "M12 4c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm5 9h-4v4h-2v-4H7v-2h4V7h2v4z"
 };
 
  // Level to interval mapping for spaced repetition
@@ -199,6 +201,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         ${isLearningTab ? createLevelBadge(wordObj.learningLevel || 0, wordObj.isInReview) : createSimpleLevelBadge(wordObj.learningLevel || 0)}
       </span>
       <div class="word-actions">
+        <span class="icon-wrapper info-icon" title="Show Details" data-word="${wordObj.word}">
+          ${createSvgIcon('info')}
+        </span>
         <span class="icon-wrapper sound-icon" title="Play Sound" data-word="${wordObj.word}">
           ${createSvgIcon('sound')}
         </span>
@@ -214,75 +219,45 @@ document.addEventListener('DOMContentLoaded', async () => {
       </div>
     `;
 
-    // Level badge click handler for both tabs
-    const levelBadge = wordItem.querySelector('.level-badge');
-    levelBadge.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const allDropdowns = document.querySelectorAll('.level-dropdown');
-      allDropdowns.forEach(d => {
-        if (d !== dropdown) {
-          d.classList.remove('show');
-        }
-      });
-      dropdown.classList.toggle('show');
+    // Create word details popup
+    const wordDetailsPopup = new WordDetailsPopup(wordObj, createSvgIcon);
+    wordDetailsPopup.setOnSave((updatedData) => {
+        wordManager.updateWordDetails(wordObj.word, updatedData);
+        Object.assign(wordObj, updatedData);
+    });
+    const popup = wordDetailsPopup.create();
+    wordItem.appendChild(popup);
+
+    // Add hover functionality
+    const infoIcon = wordItem.querySelector('.info-icon');
+    infoIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        wordDetailsPopup.show(infoIcon);
     });
 
-    // Add review button click handler
-    const reviewButton = wordItem.querySelector('.review-button');
-    if (reviewButton) {
-      reviewButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const currentLevel = wordObj.learningLevel || 0;
-        if (typeof wordObj.word === 'string' && wordObj.word.trim() !== '') {
-          updateWordProgress(wordObj.word, currentLevel);
-        } else {
-          console.error('Invalid word object:', wordObj);
+    // Add scroll event listener
+    window.addEventListener('scroll', () => {
+        if (wordDetailsPopup.currentState === 'showing' || wordDetailsPopup.currentState === 'sticky') {
+            const infoIconRect = infoIcon.getBoundingClientRect();
+            if (infoIconRect.bottom < 0 || infoIconRect.top > window.innerHeight) {
+                wordDetailsPopup.handleClose();
+            } else if (popup.classList.contains('show')) {
+                requestAnimationFrame(() => {
+                    wordDetailsPopup.positionPopup(infoIcon);
+                });
+            }
         }
-      });
-    }
-
-    // Create and append level dropdown for both tabs
-    const dropdown = document.createElement('div');
-    dropdown.className = 'level-dropdown';
-    dropdown.innerHTML = Array.from({length: 7}, (_, i) => i) // 0'dan 6'ya kadar
-      .map(level => `<span class="level-option level-${level} ${level === (wordObj.learningLevel || 0) ? 'current' : ''}" 
-        data-level="${level}" 
-        data-word="${wordObj.word}">
-        ${level}
-      </span>`)
-      .join('');
-    levelBadge.appendChild(dropdown);
-
-    // Level options click handler for both tabs
-    dropdown.addEventListener('click', (e) => {
-      const option = e.target.closest('.level-option');
-      if (option) {
-        e.stopPropagation();
-        const newLevel = parseInt(option.dataset.level);
-        const word = option.dataset.word;
-        if (typeof word === 'string' && word.trim() !== '' && !isNaN(newLevel) && newLevel >= 0 && newLevel <= 6) {
-          updateWordProgress(word, newLevel);
-        } else {
-          console.error('Invalid level option data:', { word, newLevel });
-        }
-      }
     });
 
-    // Level up icon click handler (only in Learning tab)
-    if (isLearningTab) {
-      const levelUpIcon = wordItem.querySelector('.level-up-icon');
-      if (levelUpIcon) {
-        levelUpIcon.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const currentLevel = parseInt(e.currentTarget.dataset.level);
-          if (!isNaN(currentLevel) && currentLevel >= 0 && currentLevel < 6) {
-            updateWordProgress(wordObj.word, currentLevel + 1);
-          } else {
-            console.error('Invalid level for level up:', currentLevel);
-          }
-        });
-      }
-    }
+    // Add click outside handler
+    document.addEventListener('click', (e) => {
+        if ((wordDetailsPopup.currentState === 'showing' || wordDetailsPopup.currentState === 'sticky') && 
+            !popup.contains(e.target) && 
+            !wordItem.contains(e.target) &&
+            !e.target.closest('.word-item')) {
+            wordDetailsPopup.handleClose();
+        }
+    });
 
     // Add other event listeners
     const wordText = wordItem.querySelector('.word-text');
@@ -290,15 +265,142 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const soundIcon = wordItem.querySelector('.sound-icon');
     soundIcon.addEventListener('click', () => {
-      playSound(wordObj.word);
+        playSound(wordObj.word);
     });
 
     const deleteIcon = wordItem.querySelector('.delete-icon');
     deleteIcon.addEventListener('click', () => {
-      deleteWord(wordObj.word);
+        deleteWord(wordObj.word);
     });
 
+    // Level badge click handler
+    const levelBadge = wordItem.querySelector('.level-badge');
+    levelBadge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const allDropdowns = document.querySelectorAll('.level-dropdown');
+        allDropdowns.forEach(d => {
+            if (d !== dropdown) {
+                d.classList.remove('show');
+            }
+        });
+        dropdown.classList.toggle('show');
+    });
+
+    // Add review button click handler
+    const reviewButton = wordItem.querySelector('.review-button');
+    if (reviewButton) {
+        reviewButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const currentLevel = wordObj.learningLevel || 0;
+            if (typeof wordObj.word === 'string' && wordObj.word.trim() !== '') {
+                updateWordProgress(wordObj.word, currentLevel);
+            } else {
+                console.error('Invalid word object:', wordObj);
+            }
+        });
+    }
+
+    // Create and append level dropdown
+    const dropdown = document.createElement('div');
+    dropdown.className = 'level-dropdown';
+    dropdown.innerHTML = Array.from({length: 7}, (_, i) => i)
+        .map(level => `<span class="level-option level-${level} ${level === (wordObj.learningLevel || 0) ? 'current' : ''}" 
+            data-level="${level}" 
+            data-word="${wordObj.word}">
+            ${level}
+        </span>`)
+        .join('');
+    levelBadge.appendChild(dropdown);
+
+    // Level options click handler
+    dropdown.addEventListener('click', (e) => {
+        const option = e.target.closest('.level-option');
+        if (option) {
+            e.stopPropagation();
+            const newLevel = parseInt(option.dataset.level);
+            const word = option.dataset.word;
+            if (typeof word === 'string' && word.trim() !== '' && !isNaN(newLevel) && newLevel >= 0 && newLevel <= 6) {
+                updateWordProgress(word, newLevel);
+            } else {
+                console.error('Invalid level option data:', { word, newLevel });
+            }
+        }
+    });
+
+    // Level up icon click handler (only in Learning tab)
+    if (isLearningTab) {
+        const levelUpIcon = wordItem.querySelector('.level-up-icon');
+        if (levelUpIcon) {
+            levelUpIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const currentLevel = parseInt(e.currentTarget.dataset.level);
+                if (!isNaN(currentLevel) && currentLevel >= 0 && currentLevel < 6) {
+                    updateWordProgress(wordObj.word, currentLevel + 1);
+                } else {
+                    console.error('Invalid level for level up:', currentLevel);
+                }
+            });
+        }
+    }
+
     return wordItem;
+  }
+
+  // Function to show word edit popup
+  function showWordEditPopup(wordObj) {
+    const popup = document.createElement('div');
+    popup.className = 'word-edit-popup';
+    popup.innerHTML = `
+      <div class="popup-content">
+        <h3>Edit Word: ${wordObj.word}</h3>
+        <div class="form-group">
+          <label for="meaning">Meaning:</label>
+          <textarea id="meaning" rows="3">${wordObj.meaning || ''}</textarea>
+        </div>
+        <div class="form-group">
+          <label for="examples">Examples (one per line):</label>
+          <textarea id="examples" rows="4">${(wordObj.examples || []).join('\n')}</textarea>
+        </div>
+        <div class="form-group">
+          <label for="synonyms">Synonyms (comma separated):</label>
+          <input type="text" id="synonyms" value="${wordObj.synonyms ? wordObj.synonyms.join(', ') : ''}">
+        </div>
+        <div class="popup-actions">
+          <button class="save-btn">Save</button>
+          <button class="cancel-btn">Cancel</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    // Handle save button click
+    const saveBtn = popup.querySelector('.save-btn');
+    saveBtn.addEventListener('click', () => {
+      const meaning = popup.querySelector('#meaning').value.trim();
+      const examples = popup.querySelector('#examples').value
+        .split('\n')
+        .map(ex => ex.trim())
+        .filter(ex => ex.length > 0);
+      const synonyms = popup.querySelector('#synonyms').value
+        .split(',')
+        .map(syn => syn.trim())
+        .filter(syn => syn.length > 0);
+
+      wordManager.updateWordDetails(wordObj.word, {
+        meaning,
+        examples,
+        synonyms
+      });
+
+      document.body.removeChild(popup);
+    });
+
+    // Handle cancel button click
+    const cancelBtn = popup.querySelector('.cancel-btn');
+    cancelBtn.addEventListener('click', () => {
+      document.body.removeChild(popup);
+    });
   }
 
   // Function to load and display saved words
@@ -468,9 +570,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       repetitionList.innerHTML = '';
 
+      // Helper function to sort words by level and date
+      const sortWordsByLevelAndDate = (words) => {
+        return words.sort((a, b) => {
+          // First sort by level
+          const levelA = a.learningLevel || 0;
+          const levelB = b.learningLevel || 0;
+          if (levelA !== levelB) {
+            return levelA - levelB;
+          }
+          // If levels are equal, sort by date
+          const dateA = new Date(a.addedDate || a.date);
+          const dateB = new Date(b.addedDate || b.date);
+          return dateB - dateA;
+        });
+      };
+
       // Create sections for each group
       if (groupedWords.today && groupedWords.today.length > 0) {
-        const todaySection = createReviewSection('Today\'s Reviews', groupedWords.today);
+        const sortedTodayWords = sortWordsByLevelAndDate(groupedWords.today);
+        const todaySection = createReviewSection('Today\'s Reviews', sortedTodayWords);
         repetitionList.appendChild(todaySection);
       }
 
@@ -492,14 +611,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             sectionTitle = date.toLocaleDateString() + ' Reviews';
           }
           
-          const futureSection = createReviewSection(sectionTitle, words);
+          const sortedWords = sortWordsByLevelAndDate(words);
+          const futureSection = createReviewSection(sectionTitle, sortedWords);
           repetitionList.appendChild(futureSection);
         });
       }
 
       // Create section for not started words
       if (groupedWords.notStarted && groupedWords.notStarted.length > 0) {
-        const notStartedSection = createReviewSection('Not Started', groupedWords.notStarted);
+        const sortedNotStartedWords = sortWordsByLevelAndDate(groupedWords.notStarted);
+        const notStartedSection = createReviewSection('Not Started', sortedNotStartedWords);
         repetitionList.appendChild(notStartedSection);
       }
     } catch (error) {
@@ -568,6 +689,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       word: word.word,
       meaning: word.meaning || "",
       examples: Array.isArray(word.examples) ? word.examples : [],
+      synonyms: word.synonyms || "",
       isInReview: word.isInReview || false,
       encounterCount: word.encounterCount || 1,
       learningLevel: word.learningLevel || 0,
@@ -611,6 +733,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `Word: ${word.word}`,
         `Meaning: ${word.meaning || ''}`,
         `Examples: ${(word.examples || []).join(', ')}`,
+        `Synonyms: ${word.synonyms || ''}`,
         `Is In Review: ${word.isInReview}`,
         `Learning Level: ${word.learningLevel || 0}`,
         `Encounter Count: ${word.encounterCount || 1}`,
@@ -707,6 +830,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     encounterCount: parseInt(encounterCount) || 1,
                     learningLevel: parseInt(learningLevel) || 0,
                     addedDate: addedDate || new Date().toISOString(),
+                    synonyms: [],
                     repetitionHistory: [],
                     nextReviewDate: nextReviewDate || null
                   });
@@ -728,6 +852,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 encounterCount: 1,
                 learningLevel: 0,
                 addedDate: new Date().toISOString(),
+                synonyms: [],
                 repetitionHistory: [],
                 nextReviewDate: null
               }));
