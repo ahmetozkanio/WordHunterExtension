@@ -1259,15 +1259,92 @@ h2.header {
 }
 
 .copy-icon:hover {
-    background-color: var(--neutral-100);
+    background-color: var(--neutral-300);
     color: var(--primary);
 }
 
-.copy-icon.copied {
+.level-up-all-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--neutral-500);
+    transition: all 0.2s ease;
+    margin-left: 4px;
+}
+
+.level-up-all-icon:hover {
+    background-color: var(--neutral-300);
+    color: var(--primary);
+}
+
+/* Toast Notification */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toast {
+    background: white;
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 200px;
+    max-width: 300px;
+    animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+    border-left: 4px solid var(--success);
+}
+
+.toast.success {
+    border-left-color: var(--success);
+}
+
+.toast.error {
+    border-left-color: var(--danger);
+}
+
+.toast-icon {
+    width: 20px;
+    height: 20px;
     color: var(--success);
-    background-color: color-mix(in srgb, var(--success) 20%, white);
-    transform: scale(1.1);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 30%, white);
+}
+
+.toast.error .toast-icon {
+    color: var(--danger);
+}
+
+.toast-message {
+    color: var(--neutral-700);
+    font-size: 14px;
+    flex: 1;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
 }
 
 /* Word Details Popup */

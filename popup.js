@@ -1027,6 +1027,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       <span class="copy-icon" title="Copy all words">
         ${createSvgIcon('copy', 16)}
       </span>
+      <span class="level-up-all-icon" title="Level up all words">
+        ${createSvgIcon('levelUp', 16)}
+      </span>
     ` : '';
     
     header.innerHTML = `
@@ -1058,7 +1061,27 @@ document.addEventListener('DOMContentLoaded', async () => {
           })
           .catch(err => {
             console.error('Failed to copy words:', err);
+            showToast('Failed to copy words', 'error');
           });
+      });
+
+      // Add level up all functionality
+      const levelUpAllButton = header.querySelector('.level-up-all-icon');
+      levelUpAllButton.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent section collapse
+        let leveledUpCount = 0;
+        words.forEach(word => {
+          const currentLevel = word.learningLevel || 0;
+          if (currentLevel < 6) { // Only level up if not at max level
+            updateWordProgress(word.word, currentLevel + 1);
+            leveledUpCount++;
+          }
+        });
+        if (leveledUpCount > 0) {
+          showToast(`${leveledUpCount} word${leveledUpCount > 1 ? 's' : ''} leveled up`);
+        } else {
+          showToast('No words to level up', 'error');
+        }
       });
     }
 
@@ -1297,5 +1320,42 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.warn('Speech synthesis not supported in this browser.');
       // Fallback or error message if TTS is not supported
     }
+  }
+
+  // Function to show toast notification
+  function showToast(message, type = 'success') {
+    // Create toast container if it doesn't exist
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'toast-container';
+      document.body.appendChild(container);
+    }
+
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // Create icon based on type
+    const icon = type === 'success' ? 
+      createSvgIcon('levelUp', 20) : 
+      createSvgIcon('delete', 20);
+    
+    toast.innerHTML = `
+      <span class="toast-icon">${icon}</span>
+      <span class="toast-message">${message}</span>
+    `;
+
+    // Add toast to container
+    container.appendChild(toast);
+
+    // Remove toast after animation
+    setTimeout(() => {
+      toast.remove();
+      // Remove container if empty
+      if (container.children.length === 0) {
+        container.remove();
+      }
+    }, 3000);
   }
 });
